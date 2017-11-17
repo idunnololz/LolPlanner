@@ -20,6 +20,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import ReactTooltip from 'react-tooltip'
+import Util from './util';
 
 const muiTheme = getMuiTheme({
   palette: {
@@ -38,14 +39,7 @@ const muiTheme = getMuiTheme({
 const STAT_TYPE_DEFAULT = 0;
 const STAT_TYPE_PERCENT = 1;
 
-const STAT_DICT = {
-  "FlatMovementSpeedMod": ["Movement speed", 0],
-  "FlatCoolDownRedMod": ["Cooldown reduction", STAT_TYPE_PERCENT],
-  "FlatMagicDamageMod": ["AP", 0],
-  "PercentMovementSpeedMod": ["Movement speed modifier", STAT_TYPE_PERCENT],
-  "FlatMPRegenMod": ["Increased mana regen. rate", STAT_TYPE_PERCENT],
-  "FlatMPPoolMod": ["Mana", 0],
-}
+const STAT_DICT = {}
 
 const textViewStyles = {
   underlineStyle: {
@@ -72,7 +66,7 @@ var getSummonerImage = function(sumId) {
   return getSummonerImageFor(parseInt(sumId));
 }
 var updateUrl = function() {
-  window.history.pushState(null, "", "/LolPlanner/" + curBuild.toBase64());
+  window.history.pushState(null, "", "/" + curBuild.toBase64());
 }
 var canBuildInto = function(item1, item2) {
   if (item1.id === item2.id) return true;
@@ -87,69 +81,7 @@ var canBuildInto = function(item1, item2) {
   return false;
 }
 
-function copyTextToClipboard(text) {
-  var textArea = document.createElement("textarea");
-
-  //
-  // *** This styling is an extra step which is likely not required. ***
-  //
-  // Why is it here? To ensure:
-  // 1. the element is able to have focus and selection.
-  // 2. if element was to flash render it has minimal visual impact.
-  // 3. less flakyness with selection and copying which **might** occur if
-  //    the textarea element is not visible.
-  //
-  // The likelihood is the element won't even render, not even a flash,
-  // so some of these are just precautions. However in IE the element
-  // is visible whilst the popup box asking the user for permission for
-  // the web page to copy to the clipboard.
-  //
-
-  // Place in top-left corner of screen regardless of scroll position.
-  textArea.style.position = 'fixed';
-  textArea.style.top = 0;
-  textArea.style.left = 0;
-
-  // Ensure it has a small width and height. Setting to 1px / 1em
-  // doesn't work as this gives a negative w/h on some browsers.
-  textArea.style.width = '2em';
-  textArea.style.height = '2em';
-
-  // We don't need padding, reducing the size if it does flash render.
-  textArea.style.padding = 0;
-
-  // Clean up any borders.
-  textArea.style.border = 'none';
-  textArea.style.outline = 'none';
-  textArea.style.boxShadow = 'none';
-
-  // Avoid flash of white box if rendered for any reason.
-  textArea.style.background = 'transparent';
-
-
-  textArea.value = text;
-
-  document.body.appendChild(textArea);
-
-  textArea.select();
-
-  try {
-    var successful = document.execCommand('copy');
-    var msg = successful ? 'successful' : 'unsuccessful';
-    console.log('Copying text command was ' + msg);
-  } catch (err) {
-    console.log('Oops, unable to copy');
-  }
-
-  document.body.removeChild(textArea);
-}
-
 var buildBin = window.location.href.substring(window.location.href.indexOf('/', 9) + 1);
-if (buildBin.startsWith("LolPlanner/") && buildBin.length === 11) {
-  buildBin = buildBin.substring(11);
-} else if (buildBin.startsWith("LolPlanner") && buildBin.length === 10) {
-  buildBin = buildBin.substring(10);
-}
 var newBuild = false;
 
 var curBuild;
@@ -171,11 +103,6 @@ class ItemView extends Component {
   }
 
   render() {
-
-    // var onHover = () => {
-    //   TweenLite.to(logo, 1, {left:"632px"});
-    // }
-
     return (
       <RaisedButton 
         backgroundColor="#1A3C42"
@@ -198,11 +125,6 @@ class ItemView2 extends Component {
   }
 
   render() {
-
-    // var onHover = () => {
-    //   TweenLite.to(logo, 1, {left:"632px"});
-    // }
-           
     return (
       <div 
         data-tip
@@ -296,7 +218,7 @@ class ItemPicker extends Component {
     var items = this.state.items;
 
     return (
-        <div className="side-panel item-picker">
+        <div className="vertical-content item-picker">
           <header>
             <div className="section-header">
               <h2>Item picker</h2>
@@ -375,46 +297,46 @@ class ChampionPicker extends Component {
     var title = this.props.startScreen ? "Select a champion" : "Champion picker";
 
     return (
-        <div className={"side-panel " + (this.props.startScreen ? "start-panel " : "")}>
-          <header>
-            <div className="section-header">
-              <h2>{title}</h2>
+      <div className={"vertical-content " + (this.props.startScreen ? "start-panel " : "")}>
+        <header>
+          <div className="section-header">
+            <h2>{title}</h2>
 
-              <div className="spacer-1-flex"/>
+            <div className="spacer-1-flex"/>
 
-              <IconButton onClick={this.props.onCloseClicked}>
-                <img src={require('./res/ic_close_white_24px.svg')}/>
-              </IconButton>
-            </div>
-            <TextField
-              underlineStyle={textViewStyles.underlineStyle}
-              underlineFocusStyle={textViewStyles.underlineFocusStyle}
-              hintText="Champion name"
-              onChange={(e, text) => {
-                this.filter(text);
-              }}
-            />
-          </header>
-          <Scrollbars 
-            className="items-container"
-            autoHide
-            autoHideTimeout={1000}
-            autoHideDuration={300}
-            renderThumbHorizontal={this.renderThumb}
-            renderThumbVertical={this.renderThumb}
-            {...this.props}>
+            <IconButton onClick={this.props.onCloseClicked}>
+              <img src={require('./res/ic_close_white_24px.svg')}/>
+            </IconButton>
+          </div>
+          <TextField
+            underlineStyle={textViewStyles.underlineStyle}
+            underlineFocusStyle={textViewStyles.underlineFocusStyle}
+            hintText="Champion name"
+            onChange={(e, text) => {
+              this.filter(text);
+            }}
+          />
+        </header>
+        <Scrollbars 
+          className="items-container"
+          autoHide
+          autoHideTimeout={1000}
+          autoHideDuration={300}
+          renderThumbHorizontal={this.renderThumb}
+          renderThumbVertical={this.renderThumb}
+          {...this.props}>
 
-            <FlipMove className="items-container" duration={300} easing="ease-out">
-              {champions.map((e) => {
-                return (
-                  <ChampionView 
-                    item={e} 
-                    key={e.id} 
-                    onClick={() => this.props.onItemSelected(e)}/>)
-              })}
-            </FlipMove>
-          </Scrollbars>
-        </div>
+          <FlipMove className="items-container" duration={300} easing="ease-out">
+            {champions.map((e) => {
+              return (
+                <ChampionView 
+                  item={e} 
+                  key={e.id} 
+                  onClick={() => this.props.onItemSelected(e)}/>)
+            })}
+          </FlipMove>
+        </Scrollbars>
+      </div>
     )
   }
 }
@@ -451,46 +373,46 @@ class SummonerPicker extends Component {
     var summoners = this.state.summoners;
 
     return (
-        <div className="side-panel">
-          <header>
-            <div className="section-header">
-              <h2>Summoner picker</h2>
+      <div className="vertical-content">
+        <header>
+          <div className="section-header">
+            <h2>Summoner picker</h2>
 
-              <div className="spacer-1-flex"/>
+            <div className="spacer-1-flex"/>
 
-              <IconButton onClick={this.props.onCloseClicked}>
-                <img src={require('./res/ic_close_white_24px.svg')}/>
-              </IconButton>
-            </div>
-            <TextField
-              underlineStyle={textViewStyles.underlineStyle}
-              underlineFocusStyle={textViewStyles.underlineFocusStyle}
-              hintText="Summoner name"
-              onChange={(e, text) => {
-                this.filter(text);
-              }}
-            />
-          </header>
-          <Scrollbars 
-            className="items-container"
-            autoHide
-            autoHideTimeout={1000}
-            autoHideDuration={300}
-            renderThumbHorizontal={this.renderThumb}
-            renderThumbVertical={this.renderThumb}
-            {...this.props}>
+            <IconButton onClick={this.props.onCloseClicked}>
+              <img src={require('./res/ic_close_white_24px.svg')}/>
+            </IconButton>
+          </div>
+          <TextField
+            underlineStyle={textViewStyles.underlineStyle}
+            underlineFocusStyle={textViewStyles.underlineFocusStyle}
+            hintText="Summoner name"
+            onChange={(e, text) => {
+              this.filter(text);
+            }}
+          />
+        </header>
+        <Scrollbars 
+          className="items-container"
+          autoHide
+          autoHideTimeout={1000}
+          autoHideDuration={300}
+          renderThumbHorizontal={this.renderThumb}
+          renderThumbVertical={this.renderThumb}
+          {...this.props}>
 
-            <div className="items-container" duration={300} easing="ease-out">
-              {summoners.map((e) => {
-                return (
-                  <SummonerView 
-                    item={e} 
-                    key={e.id} 
-                    onClick={() => {this.props.onItemSelected(this.props.index, e)}}/>);
-              })}
-            </div>
-          </Scrollbars>
-        </div>
+          <div className="items-container" duration={300} easing="ease-out">
+            {summoners.map((e) => {
+              return (
+                <SummonerView 
+                  item={e} 
+                  key={e.id} 
+                  onClick={() => {this.props.onItemSelected(this.props.index, e)}}/>);
+            })}
+          </div>
+        </Scrollbars>
+      </div>
     );
   }
 }
@@ -526,7 +448,6 @@ class ItemBuildStats extends Component {
     var build = curBuild.getItemIds()[0].map((e) => {
       return ItemsLibrary.getItem(e[0]);
     });
-    //console.dir(build);
 
     var stats = {};
 
@@ -568,7 +489,7 @@ outer:
     console.dir(stats);
 
     return ( 
-      <div className="side-panel">
+      <div className="vertical-content">
         <header>
           <div className="section-header">
             <h2>Build stats</h2>
@@ -601,11 +522,9 @@ outer:
 }
 
 class Settings extends Component {
-
   render() {
-
     return ( 
-      <div className="side-panel">
+      <div className="vertical-content">
         <header>
           <div className="section-header">
             <h2>Settings</h2>
@@ -667,7 +586,8 @@ class ItemBuild extends Component {
 
     return (
       <FlipMove
-        duration={250} easing="ease-out"
+        duration={250} 
+        easing="ease-out"
         className="item-build">
 
         {startingItems.length === 0 ? null : 
@@ -689,7 +609,7 @@ class ItemBuild extends Component {
             onClick={() => this.props.onAddItemClicked()}/>
         </div>
       </FlipMove>
-      );
+    );
   }
 }
 
@@ -811,13 +731,11 @@ class SkillBuild extends Component {
         </Measure>
 
         {errorText}
-      </FlipMove>
-      );
+      </FlipMove>);
   }
 }
 
 class SummonerBuild extends Component {
-
   render() {
     var sumIds = this.props.sums;
     var sum0Component;
@@ -1019,9 +937,7 @@ class RunesBuild extends Component {
           </div>
         </div>
 
-
         <div style={{width: 16}}/>
-
 
         <div>
           <div>
@@ -1104,16 +1020,18 @@ class App extends Component {
       this.setState({panelToShow: -1});
     }
 
+    var pickerClass = "side-panel";
+
     if (this.state.panelToShow == 4) {
-        picker = 
-          <ItemPicker
-            onItemSelected={(item) => {curBuild.modifyItem(0, this.state.editingItem, item); this.setState({panelToShow: -1})}} 
-            onCloseClicked={onCloseHandler}/>
+      picker = 
+        <ItemPicker
+          onItemSelected={(item) => {curBuild.modifyItem(0, this.state.editingItem, item); this.setState({panelToShow: -1})}} 
+          onCloseClicked={onCloseHandler}/>
     } else if (this.state.panelToShow == 1) {
-        picker = 
-          <ItemPicker
-            onItemSelected={(e) => {curBuild.addItemToCurrentGroup(e);}}
-            onCloseClicked={onCloseHandler}/>
+      picker = 
+        <ItemPicker
+          onItemSelected={(e) => {curBuild.addItemToCurrentGroup(e);}}
+          onCloseClicked={onCloseHandler}/>
     } else if (this.state.panelToShow == 2) {
       picker = 
         <ChampionPicker 
@@ -1133,6 +1051,12 @@ class App extends Component {
       picker = 
         <Settings 
           onCloseClicked={onCloseHandler}/>;
+    }
+
+    if (picker == null) {
+      pickerClass += " side-panel-collapsed";
+    } else {
+      pickerClass += " side-panel-expanded";
     }
 
     var championComponent;
@@ -1228,7 +1152,7 @@ class App extends Component {
 
                 <IconButton onClick={
                     () => {
-                      copyTextToClipboard(window.location.href); 
+                      Util.copyTextToClipboard(window.location.href); 
                       toast("Copied to clipboard!");
                   }}>
                   <img src={require('./res/ic_link_white_24px.svg')}/>
@@ -1286,7 +1210,9 @@ class App extends Component {
               <RunesBuild runes={this.state.build.getRunes()}/>
             </div>
           </Scrollbars>
-          {picker}
+          <div className={pickerClass}>
+            {picker}
+          </div>
         </FlipMove>
 
         {overlay}

@@ -6,6 +6,12 @@
   width: 100%;
   display: flex;
   justify-content: center;
+  -webkit-transition: width 1s ease-in-out;
+  -moz-transition: width 1s ease-in-out;
+  -o-transition: width 1s ease-in-out;
+  transition: width 1s ease-in-out;
+
+  overflow-x: hidden;
 }
 
 .settings-container {
@@ -47,6 +53,8 @@
       position: absolute;
       left: 0;
       top: 0;
+
+      box-sizing: border-box;
     }
 
     .items-container {
@@ -147,11 +155,11 @@
 }
 
 .main {
-    margin: auto;
-    max-width: 700px;
-    padding-top: 16px;
-    padding-left: 16px;
-    padding-right: 16px;
+  margin: auto;
+  max-width: 700px;
+  padding-top: 16px;
+  padding-left: 16px;
+  padding-right: 16px;
 
   .App-title {
     font-size: 1.5em;
@@ -272,10 +280,29 @@
   padding-right: 8px;
 }
 
-.side-panel {
+.side-panel-collapsed {
+  transform: translateX(100%);
+  flex: .001 0 0;
+}
+
+.side-panel-expanded {
+  transform: translateX(0);
   flex: 1 0 0;
+}
+
+.side-panel {
+  width: 0px;
   display: flex;
   flex-flow: column;
+  transition: all .3s ease-in-out;
+
+  background-color: $primary-color;
+}
+
+.vertical-content {
+  display: flex;
+  flex-flow: column;
+  flex: 1 0 0;
 
   background-color: $primary-color;
 
@@ -503,6 +530,16 @@ h3 {
   to { transform: rotate(360deg); }
 }
 
+@media (max-width: 1080px) { 
+  .side-panel-other {
+    position: absolute;
+    right: 0px;
+    width: 100%;
+    height: 100%;
+    max-width: 400px;
+  }
+}
+
 @media (max-width: 600px) { 
 
   .runes-container {
@@ -528,4 +565,11 @@ h3 {
     }
   }
 
+  .side-panel-other {
+    position: absolute;
+    right: 0px;
+    width: 100%;
+    height: 100%;
+    max-width: 230px;
+  }
 }

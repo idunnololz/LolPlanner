@@ -2,7 +2,7 @@
   "name": "lol-planner",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://idunnololz.github.io/LolPlanner",
+  "homepage": "http://idunnololz.github.io",
   "dependencies": {
     "gzip-js": "^0.3.2",
     "material-ui": "^0.19.4",
