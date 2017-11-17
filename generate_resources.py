@@ -4,10 +4,12 @@ from pprint import pprint
 with open('src/res/raw/item.json') as data_file:    
     data = json.load(data_file);
 
+baseDir = './res'
+
 str = ""
 
 for key, value in data["data"].items():
-	str += "case %s: return require('./res/item_thumb/%s'); \n" % (key, value["image"]); 
+	str += "case %s: return require('%s/item_thumb/%s'); \n" % (key, baseDir, value["image"]); 
 
 str += "default: console.log('Invalid id: ${id}'); return null;\n"
 
@@ -27,7 +29,7 @@ with open('src/res/raw/champion.json') as data_file:
 str = ""
 
 for key, value in data["data"].items():
-	str += "case %s: return require('./res/champions_thumb/%s'); \n" % (value["id"], key + ".png"); 
+	str += "case %s: return require('%s/champions_thumb/%s'); \n" % (value["id"], baseDir, key + ".png"); 
 
 str += "default: console.log('Invalid id: ${id}'); return null;\n"
 
@@ -47,7 +49,7 @@ with open('src/res/raw/summoner.json') as data_file:
 str = ""
 
 for key, value in data["data"].items():
-	str += "case %s: return require('./res/summoner/%s'); \n" % (value["id"], key + ".png"); 
+	str += "case %s: return require('%s/summoner/%s'); \n" % (value["id"], baseDir, key + ".png"); 
 
 str += "default: console.log('Invalid id: ${id}'); return null;\n"
 

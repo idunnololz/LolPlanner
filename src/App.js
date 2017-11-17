@@ -72,7 +72,7 @@ var getSummonerImage = function(sumId) {
   return getSummonerImageFor(parseInt(sumId));
 }
 var updateUrl = function() {
-  window.history.pushState(null, "", "/" + curBuild.toBase64());
+  window.history.pushState(null, "", "/LolPlanner/" + curBuild.toBase64());
 }
 var canBuildInto = function(item1, item2) {
   if (item1.id === item2.id) return true;
@@ -145,6 +145,11 @@ function copyTextToClipboard(text) {
 }
 
 var buildBin = window.location.href.substring(window.location.href.indexOf('/', 9) + 1);
+if (buildBin.startsWith("LolPlanner/") && buildBin.length === 11) {
+  buildBin = buildBin.substring(11);
+} else if (buildBin.startsWith("LolPlanner") && buildBin.length === 10) {
+  buildBin = buildBin.substring(10);
+}
 var newBuild = false;
 
 var curBuild;
