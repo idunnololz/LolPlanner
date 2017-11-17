@@ -2,8 +2,10 @@
   "name": "lol-planner",
   "version": "0.1.0",
   "private": true,
+  "homepage" : "http://idunnololz.github.io/LolPlanner",
   "dependencies": {
     "gzip-js": "^0.3.2",
+    "material-ui": "^0.19.4",
     "react": "^16.0.0",
     "react-custom-scrollbars": "^4.2.1",
     "react-dom": "^16.0.0",
@@ -14,6 +16,7 @@
     "react-scripts": "1.0.17",
     "react-shuffle": "^2.1.0",
     "react-toastify": "^2.2.0",
+    "react-tooltip": "^3.4.0",
     "source-map-explorer": "^1.5.0"
   },
   "scripts": {
