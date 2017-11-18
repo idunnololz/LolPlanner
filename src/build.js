@@ -84,6 +84,20 @@ class Build {
     this.listeners.forEach(elem => elem.onItemsChanged());
   }
 
+  moveItem(group, oldIndex, newIndex) {
+    if (oldIndex == newIndex) {
+      return;
+    }
+    var itemToMove = this.json.itemIds[group][oldIndex];
+    this.json.itemIds[group].splice(oldIndex, 1);
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    this.json.itemIds[group].splice(newIndex, 0, itemToMove);
+
+    this.listeners.forEach(elem => elem.onItemsChanged());
+  }
+
   deleteItem(group, index) {
   	this.json.itemIds[group].splice(index, 1);
 

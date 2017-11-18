@@ -1,16 +1,15 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import $ from "jquery";
 
 import {grey200, grey600} from 'material-ui/styles/colors';
 
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlipMove from 'react-flip-move';
-import {ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
+import {getItemImage, getChampionImage, getSummonerImage, ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
 import TextField from 'material-ui/TextField';
-import {getItemImageFor, getChampionImageFor, getSummonerImageFor} from './res_helper.js';
 import { Scrollbars } from 'react-custom-scrollbars';
 import Build from './build.js';
 import Measure from 'react-measure'
@@ -21,50 +20,15 @@ import Dialog from 'material-ui/Dialog';
 import FlatButton from 'material-ui/FlatButton';
 import ReactTooltip from 'react-tooltip'
 import Util from './util';
-
-const muiTheme = getMuiTheme({
-  palette: {
-    textColor: '#fff',
-    alternateTextColor: '#000',
-    primary1Color: '#0d2f35',
-    accent1Color: '#c9ba9d',
-    disabledColor: grey600,
-    canvasColor: '#0d2f35',
-  },
-  appBar: {
-    height: 50,
-  },
-});
+import {ItemView, ItemPicker, ChampionPicker, SummonerPicker} from './picker';
+import {MuiTheme} from './theme';
 
 const STAT_TYPE_DEFAULT = 0;
 const STAT_TYPE_PERCENT = 1;
 
 const STAT_DICT = {}
 
-const textViewStyles = {
-  underlineStyle: {
-    borderColor: grey600,
-  },
-  underlineFocusStyle: {
-    borderColor: muiTheme.palette.accent1Color,
-  },
-};
 
-var getItemImage = function(item) {
-  return getItemImageFor(parseInt(item.id));
-}
-var getChampionImage = function(championId) {
-  if (championId["id"] != null) {
-    championId = championId["id"];
-  }
-  return getChampionImageFor(parseInt(championId));
-}
-var getSummonerImage = function(sumId) {
-  if (sumId["id"] != null) {
-    sumId = sumId["id"];
-  }
-  return getSummonerImageFor(parseInt(sumId));
-}
 var updateUrl = function() {
   window.history.pushState(null, "", "/" + curBuild.toBase64());
 }
@@ -93,28 +57,6 @@ if (buildBin.length > 0) {
   newBuild = true;
 }
 
-class ItemView extends Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      isHovered: false
-    };
-  }
-
-  render() {
-    return (
-      <RaisedButton 
-        backgroundColor="#1A3C42"
-        className="item"
-        style={{width: 68, height: 68, 'min-width': 0}}
-        icon={<img src={getItemImage(this.props.item)}/>}
-        onClick={this.props.onClick}/>
-      );
-  }
-}
-
-
 class ItemView2 extends Component {
 
   constructor(props) {
@@ -132,7 +74,7 @@ class ItemView2 extends Component {
         <div 
           onMouseEnter={() => {this.setState({isHovered: true})}}
           onMouseLeave={() => {this.setState({isHovered: false})}}
-          className="item-outer">
+          className={"item-outer " + this.props.className}>
 
           <div className="item-img-container">
             <img src={getItemImage(this.props.item)}/>
@@ -153,265 +95,6 @@ class ItemView2 extends Component {
           effect="solid">
           <div className="rune-tip">{this.props.tip}</div>
         </ReactTooltip>
-      </div>
-    );
-  }
-}
-
-class ChampionView extends Component {
-  render() {
-    return (
-      <div className="champion-view-container">
-        <div
-          style={{backgroundImage: 'url(' + getChampionImage(this.props.item) + ')'}} 
-          className="item"
-          onClick={this.props.onClick}/>
-      </div>
-    );
-  }
-}
-
-class SummonerView extends Component {
-  render() {
-    return (
-      <RaisedButton 
-        backgroundColor="#1A3C42"
-        className="item"
-        style={{width: '80px', height: '80px'}}
-        icon={<img src={getSummonerImage(this.props.item)}/>}
-        onClick={this.props.onClick}/>
-    );
-  }
-}
-
-class ItemPicker extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      items: ItemsLibrary.getAllItems()
-    };
-    this.renderThumb = this.renderThumb.bind(this);
-  }
-
-  filter(filter) {
-    filter = filter.toLowerCase();
-    console.log("Fitlering: " + filter);
-    this.setState({items: ItemsLibrary.getAllItems().filter((e) => {
-      return e.name.toLowerCase().indexOf(filter) !== -1 || e.colloq.indexOf(filter) !== -1;
-    })});
-  }
-
-  renderThumb({ style, ...props }) {
-      const { top } = this.state;
-      const thumbStyle = {
-          backgroundColor: '#c9ba9d'
-      };
-      return (
-          <div
-              style={{ ...style, ...thumbStyle }}
-              {...props}/>
-      );
-  }
-
-  render() {
-    var items = this.state.items;
-
-    return (
-        <div className="vertical-content item-picker">
-          <header>
-            <div className="section-header">
-              <h2>Item picker</h2>
-
-              <div className="spacer-1-flex"/>
-
-              <IconButton onClick={this.props.onCloseClicked}>
-                <img src={require('./res/ic_close_white_24px.svg')}/>
-              </IconButton>
-            </div>
-            <TextField
-              underlineStyle={textViewStyles.underlineStyle}
-              underlineFocusStyle={textViewStyles.underlineFocusStyle}
-              hintText="Item name"
-              onChange={(e, text) => {
-                this.filter(text);
-              }}
-            />
-          </header>
-          <Scrollbars 
-            className="items-container"
-            autoHide
-            autoHideTimeout={1000}
-            autoHideDuration={300}
-            renderThumbHorizontal={this.renderThumb}
-            renderThumbVertical={this.renderThumb}
-            {...this.props}>
-
-            <div className="items-container" duration={300} easing="ease-out">
-              {items.map((e) => {
-                return (
-                  <ItemView 
-                    data-tip={e.name}
-                    item={e} 
-                    key={e.id} 
-                    onClick={() => {this.props.onItemSelected(e)}}/>);
-              })}
-            </div>
-          </Scrollbars>
-        </div>
-    );
-  }
-}
-
-class ChampionPicker extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      champions: ChampionsLibrary.getAllChampions()
-    };
-    this.renderThumb = this.renderThumb.bind(this);
-  }
-
-  filter(filter) {
-    this.setState({champions: ChampionsLibrary.getAllChampions().filter((e) => {
-      return e.name.toLowerCase().indexOf(filter.toLowerCase()) !== -1;
-    })});
-  }
-
-  renderThumb({ style, ...props }) {
-      const { top } = this.state;
-      const thumbStyle = {
-          backgroundColor: '#c9ba9d'
-      };
-      return (
-          <div
-              style={{ ...style, ...thumbStyle }}
-              {...props}/>
-      );
-  }
-
-  render() {
-    var champions = this.state.champions;
-
-    var title = this.props.startScreen ? "Select a champion" : "Champion picker";
-
-    return (
-      <div className={"vertical-content " + (this.props.startScreen ? "start-panel " : "")}>
-        <header>
-          <div className="section-header">
-            <h2>{title}</h2>
-
-            <div className="spacer-1-flex"/>
-
-            <IconButton onClick={this.props.onCloseClicked}>
-              <img src={require('./res/ic_close_white_24px.svg')}/>
-            </IconButton>
-          </div>
-          <TextField
-            underlineStyle={textViewStyles.underlineStyle}
-            underlineFocusStyle={textViewStyles.underlineFocusStyle}
-            hintText="Champion name"
-            onChange={(e, text) => {
-              this.filter(text);
-            }}
-          />
-        </header>
-        <Scrollbars 
-          className="items-container"
-          autoHide
-          autoHideTimeout={1000}
-          autoHideDuration={300}
-          renderThumbHorizontal={this.renderThumb}
-          renderThumbVertical={this.renderThumb}
-          {...this.props}>
-
-          <FlipMove className="items-container" duration={300} easing="ease-out">
-            {champions.map((e) => {
-              return (
-                <ChampionView 
-                  item={e} 
-                  key={e.id} 
-                  onClick={() => this.props.onItemSelected(e)}/>)
-            })}
-          </FlipMove>
-        </Scrollbars>
-      </div>
-    )
-  }
-}
-
-class SummonerPicker extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      summoners: SummonersLibrary.getAllSummoners()
-    };
-    this.renderThumb = this.renderThumb.bind(this);
-  }
-
-  filter(filter) {
-    this.setState({summoners: SummonersLibrary.getAllSummoners().filter((e) => {
-      return e.name.toLowerCase().indexOf(filter.toLowerCase()) !== -1;
-    })});
-  }
-
-  renderThumb({ style, ...props }) {
-      const { top } = this.state;
-      const thumbStyle = {
-          backgroundColor: '#c9ba9d'
-      };
-      return (
-          <div
-              style={{ ...style, ...thumbStyle }}
-              {...props}/>
-      );
-  }
-
-  render() {
-    var summoners = this.state.summoners;
-
-    return (
-      <div className="vertical-content">
-        <header>
-          <div className="section-header">
-            <h2>Summoner picker</h2>
-
-            <div className="spacer-1-flex"/>
-
-            <IconButton onClick={this.props.onCloseClicked}>
-              <img src={require('./res/ic_close_white_24px.svg')}/>
-            </IconButton>
-          </div>
-          <TextField
-            underlineStyle={textViewStyles.underlineStyle}
-            underlineFocusStyle={textViewStyles.underlineFocusStyle}
-            hintText="Summoner name"
-            onChange={(e, text) => {
-              this.filter(text);
-            }}
-          />
-        </header>
-        <Scrollbars 
-          className="items-container"
-          autoHide
-          autoHideTimeout={1000}
-          autoHideDuration={300}
-          renderThumbHorizontal={this.renderThumb}
-          renderThumbVertical={this.renderThumb}
-          {...this.props}>
-
-          <div className="items-container" duration={300} easing="ease-out">
-            {summoners.map((e) => {
-              return (
-                <SummonerView 
-                  item={e} 
-                  key={e.id} 
-                  onClick={() => {this.props.onItemSelected(this.props.index, e)}}/>);
-            })}
-          </div>
-        </Scrollbars>
       </div>
     );
   }
@@ -550,6 +233,49 @@ class Settings extends Component {
 class ItemBuild extends Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      isDragging: false,
+      dropTarget: null,
+      dropItemIndex: -1,
+      dragIndex: -1
+    }
+
+    this.dragStartHandler = (index, event) => {
+      this.setState({dragIndex: index, isDragging: true});
+    }
+    this.dragEndHandler = (event) => {
+      if (!this.props.reorderItems) {
+        return;
+      }
+
+      this.setState({dragIndex: -1, isDragging: false});
+
+      var dropTarget = this.state.dropTarget;
+      if (dropTarget != null) {
+        var $dropTarget = $(dropTarget);
+        if ($dropTarget.outerWidth() / 2 + $dropTarget.offset().left > event.pageX) {
+          // drop to the left of this item...
+          console.log(`Dragging item from ${this.state.dragIndex} to ${this.state.dropItemIndex}`);
+          curBuild.moveItem(0, this.state.dragIndex, this.state.dropItemIndex);
+        } else {
+          console.log(`Dragging item from ${this.state.dragIndex} to ${this.state.dropItemIndex + 1}`);
+          curBuild.moveItem(0, this.state.dragIndex, this.state.dropItemIndex + 1);
+        }
+      }
+    }
+
+    this.mouseEnterHandler = (index, event) => {
+      if (this.state.isDragging) {
+        this.setState({dropTarget: event.target, dropItemIndex: index});
+      }
+    }
+
+    this.mouseLeaveHandler = (event) => {
+      if (this.state.isDragging) {
+        this.setState({dropTarget: null, dropItemIndex: -1});
+      }      
+    }
   }
 
   render() {
@@ -565,24 +291,53 @@ class ItemBuild extends Component {
 
       if (cost <= 500) {
         startingItems.push(
-          <ItemView2
-            tip={item.name}
-            item={item} 
-            key={itemModel[1]}
-            onEditItemClicked={() => {this.props.onEditItemClicked(index)}}
-            onDeleteItemClicked={() => {curBuild.deleteItem(0, index)}}/>
+          <div
+            draggable="true"
+            onDragEnter={this.mouseEnterHandler.bind(null, index)}
+            onDragExit={this.mouseLeaveHandler}
+            onDragStart={this.dragStartHandler.bind(null, index)}
+            onDragEnd={this.dragEndHandler}
+            key={itemModel[1]}>
+            <ItemView2
+              className={(this.props.reorderItems ? "reorder" : "editable")}
+              tip={item.name}
+              item={item} 
+              onEditItemClicked={() => {this.props.onEditItemClicked(index)}}
+              onDeleteItemClicked={() => {curBuild.deleteItem(0, index)}}/>
+          </div>
           );
       } else {
         items.push(
-          <ItemView2
-            tip={item.name}
-            item={item} 
-            key={itemModel[1]}
-            onEditItemClicked={() => {this.props.onEditItemClicked(index)}}
-            onDeleteItemClicked={() => {curBuild.deleteItem(0, index)}}/>
+          <div
+            draggable={this.state.reorderItems ? true : false}
+            onDragEnter={this.mouseEnterHandler.bind(null, index)}
+            onDragExit={this.mouseLeaveHandler}
+            onDragStart={this.dragStartHandler.bind(null, index)}
+            onDragEnd={this.dragEndHandler}
+            key={itemModel[1]}>
+            <ItemView2
+              onDragStart={this.dragStartHandler}
+              className={(this.props.reorderItems ? "reorderable" : "editable")}
+              tip={item.name}
+              item={item} 
+              onEditItemClicked={() => {this.props.onEditItemClicked(index)}}
+              onDeleteItemClicked={() => {curBuild.deleteItem(0, index)}}/>
+          </div>
           );
       }
     })
+
+    var addItemElem;
+    if (!this.props.reorderItems) {
+      addItemElem = (
+        <div className="add-item-outer">
+          <RaisedButton
+            style={{height: 80, width: 80, 'min-width': 0}}
+            primary={true} 
+            icon={<img src={require('./res/ic_add_white_24px.svg')}/>}
+            onClick={() => this.props.onAddItemClicked()}/>
+        </div>)
+    }
 
     return (
       <FlipMove
@@ -601,13 +356,7 @@ class ItemBuild extends Component {
 
         {items}
 
-        <div className="add-item-outer">
-          <RaisedButton
-            style={{height: 80, width: 80, 'min-width': 0}}
-            primary={true} 
-            icon={<img src={require('./res/ic_add_white_24px.svg')}/>}
-            onClick={() => this.props.onAddItemClicked()}/>
-        </div>
+        {addItemElem}
       </FlipMove>
     );
   }
@@ -687,7 +436,10 @@ class SkillBuild extends Component {
 
       elems.push(
         <div 
-          className={"skill-cell " + (ultLevel ? "ult-cell " : "") + (error ? "error-cell " : "")}  
+          className={"skill-cell " 
+            + (ultLevel ? "ult-cell " : "") 
+            + (error ? "error-cell " : "") 
+            + (onClickListener ? "clickable " : "")}  
           key={i} 
           style={{width: width}} 
           onClick={onClickListener}>
@@ -721,8 +473,7 @@ class SkillBuild extends Component {
           bounds
           onResize={(contentRect) => {
             this.setState({ dimensions: contentRect.bounds })
-          }}
-        >
+          }}>
           {({ measureRef }) =>
             <div ref={measureRef} className="skill-build">
               {this.makeElemWithWidth(width, error)}
@@ -730,7 +481,9 @@ class SkillBuild extends Component {
           }
         </Measure>
 
-        {errorText}
+        <div>
+          {errorText}
+        </div>
       </FlipMove>);
   }
 }
@@ -915,7 +668,7 @@ class RunesBuild extends Component {
 
     return (
       <div className="runes-container">
-        <div>
+        <div className="runes-container-row">
           <div>
             {this.makeGroup(0)}
           </div>
@@ -939,7 +692,7 @@ class RunesBuild extends Component {
 
         <div style={{width: 16}}/>
 
-        <div>
+        <div className="runes-container-row">
           <div>
             {this.makeGroup(5)}
           </div>
@@ -1081,7 +834,7 @@ class App extends Component {
         </div>);
     }
 
-    const actions = [
+    const clearBuildDialogActions = [
       <FlatButton
         label="Cancel"
         onClick={() => this.setState({confirmDeleteDialogOpen: false})}
@@ -1091,6 +844,20 @@ class App extends Component {
         onClick={() => {
           curBuild.clear();
           this.setState({confirmDeleteDialogOpen: false});
+        }}
+      />,
+    ];
+
+    const clearItemBuildDialogActions = [
+      <FlatButton
+        label="Cancel"
+        onClick={() => this.setState({confirmClearItemsDialogOpen: false})}
+      />,
+      <FlatButton
+        label="Clear items"
+        onClick={() => {
+          curBuild.clearItems();
+          this.setState({confirmClearItemsDialogOpen: false});
         }}
       />,
     ];
@@ -1109,14 +876,42 @@ class App extends Component {
         );
     }
 
+    var itemSectionButtons;
+    if (this.state.reorderItems) {
+      itemSectionButtons = [
+          <IconButton key="10" onClick={() => {this.setState({reorderItems: false})}}>
+            <img src={require('./res/ic_close_white_24px.svg')}/>
+          </IconButton>
+        ];
+    } else {
+      itemSectionButtons = [
+          <IconButton key="0" onClick={() => {this.setState({reorderItems: true})}}>
+            <img src={require('./res/ic_reorder_white_24px.svg')}/>
+          </IconButton>,
+          <IconButton key="1" onClick={() => {this.setState({panelToShow: 5})}}>
+            <img src={require('./res/ic_pie_chart_white_24px.svg')}/>
+          </IconButton>,
+          <IconButton key="2" onClick={() => this.setState({confirmClearItemsDialogOpen: true})}>
+            <img src={require('./res/ic_delete_white_24px.svg')}/>
+          </IconButton>
+        ];
+    }
+
     return (
-      <MuiThemeProvider muiTheme={muiTheme}>
+      <MuiThemeProvider muiTheme={MuiTheme}>
         <Dialog
-          actions={actions}
+          actions={clearBuildDialogActions}
           modal={false}
           open={this.state.confirmDeleteDialogOpen}
           onRequestClose={() => this.setState({confirmDeleteDialogOpen: false})}>
           Clear build?
+        </Dialog>
+        <Dialog
+          actions={clearItemBuildDialogActions}
+          modal={false}
+          open={this.state.confirmClearItemsDialogOpen}
+          onRequestClose={() => this.setState({confirmClearItemsDialogOpen: false})}>
+          Clear items?
         </Dialog>
         <FlipMove
           duration={250} easing="ease-out"
@@ -1183,31 +978,42 @@ class App extends Component {
               
               <div style={{height: 16}}/>
 
-              <div className="section-header">
-                <h3>ITEMS</h3>
+              <div className={"item-build-section-container" + (this.state.reorderItems ? " reorder" : "")}>
+                <FlipMove
+                  duration={250} easing="ease-out"
+                  className="section-header">
+                  <h3>{this.state.reorderItems ? "DRAG & DROP TO REORDER" : "ITEMS"}</h3>
 
-                <div className="spacer-1-flex"/>
+                  <div className="spacer-1-flex"/>
 
-                <IconButton onClick={() => {this.setState({panelToShow: 5})}}>
-                  <img src={require('./res/ic_pie_chart_white_24px.svg')}/>
-                </IconButton>
-
-                <IconButton onClick={() => {curBuild.clearItems();}}>
-                  <img src={require('./res/ic_delete_white_24px.svg')}/>
-                </IconButton>
+                  {itemSectionButtons}
+                </FlipMove>
+                <div className="content-container">
+                  <ItemBuild 
+                    reorderItems={this.state.reorderItems}
+                    onAddItemClicked={() => this.setState({panelToShow: 1})} 
+                    onEditItemClicked={(index) => this.setState({editingItem: index, panelToShow: 4})}
+                    items={this.state.build.getItemIds()}/>
+                </div>
               </div>
-              <ItemBuild 
-                onAddItemClicked={() => this.setState({panelToShow: 1})} 
-                onEditItemClicked={(index) => this.setState({editingItem: index, panelToShow: 4})}
-                items={this.state.build.getItemIds()}/>
+
               <div style={{height: 16}}/>
 
-              <h3>SKILL ORDER</h3>
-              <SkillBuild skillSequence={this.state.build.getSkillSequence()}/>
+              <div className="section-header">
+                <h3>SKILL ORDER</h3>
+              </div>
+              <div className="content-container">
+                <SkillBuild skillSequence={this.state.build.getSkillSequence()}/>
+              </div>
+
               <div style={{height: 16}}/>
               
-              <h3>RUNES</h3>
-              <RunesBuild runes={this.state.build.getRunes()}/>
+              <div className="section-header">
+                <h3>RUNES</h3>
+              </div>
+              <div className="content-container">
+                <RunesBuild runes={this.state.build.getRunes()}/>
+              </div>
             </div>
           </Scrollbars>
           <div className={pickerClass}>

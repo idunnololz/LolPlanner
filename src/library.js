@@ -1,4 +1,5 @@
 
+import {getItemImageFor, getChampionImageFor, getSummonerImageFor} from './res_helper.js';
 
 class _ItemsLibrary {
 	constructor() {
@@ -76,6 +77,24 @@ class _SummonersLibrary {
 		return this.summonersArr;
 	}
 }
+
+
+
+export const getItemImage = function(item) {
+  return getItemImageFor(parseInt(item.id));
+};
+export const getChampionImage = function(championId) {
+  if (championId["id"] != null) {
+    championId = championId["id"];
+  }
+  return getChampionImageFor(parseInt(championId));
+};
+export const getSummonerImage = function(sumId) {
+  if (sumId["id"] != null) {
+    sumId = sumId["id"];
+  }
+  return getSummonerImageFor(parseInt(sumId));
+};
 
 
 export const ItemsLibrary = new _ItemsLibrary();

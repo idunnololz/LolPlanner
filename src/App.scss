@@ -133,6 +133,10 @@
 .section-header {
   display: flex;
   align-items: center;
+
+  button {
+    position: relative;
+  }
 }
 
 .build-stats {
@@ -158,8 +162,15 @@
   margin: auto;
   max-width: 700px;
   padding-top: 16px;
-  padding-left: 16px;
-  padding-right: 16px;
+
+  .section-header {
+    padding-left: 16px;
+  }
+
+  .content-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 
   .App-title {
     font-size: 1.5em;
@@ -222,6 +233,7 @@
 
 
 .champion-sums-container {
+  padding-left: 16px;
   display: flex;
   -webkit-align-items: center;
   align-items: center;
@@ -245,13 +257,16 @@
     border-bottom: 1px solid rgba(200, 200, 200, .3);
   }
 
-  div {
+  .runes-container-row {
     display: flex;
     flex-flow: column;
 
-    div {
+    > div {
       display: flex;
       flex-flow: row;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
     }
   }
 
@@ -337,7 +352,7 @@
   }
 }
 
-span.error {
+.error {
   color: #f00;
 }
 
@@ -354,6 +369,10 @@ span.error {
     display: flex;
     align-items: center;
     justify-content: center;
+
+    &.clickable {
+      cursor: pointer;
+    }
   }
 
   .ult-cell {
@@ -407,6 +426,7 @@ span.error {
     background-size: cover;
     transition: opacity 0.3s ease;
   }
+
   .item:hover {
     opacity: .5; 
   }
@@ -414,6 +434,14 @@ span.error {
 
 .champion-view-container:hover { 
   background-color: $accent-color;
+}
+
+.item-build-section-container {
+  transition: background-color 0.3s ease;
+
+  &.reorder {
+    background-color: $primary-color-light;
+  }
 }
 
 .item-build {
@@ -432,6 +460,7 @@ span.error {
   padding: 10px;
   background-color: $primary-color-light;
   margin-bottom: 8px;
+  cursor: pointer;
 
   .item-img-container {
     box-sizing: border-box;
@@ -470,7 +499,7 @@ span.error {
     background-color: rgba(100, 100, 100, 0.5);
   }
 
-  .a1-hover {
+  &.editable .a1-hover {
     transform: translate(0, 0);
     opacity: 1;
   }
@@ -496,7 +525,7 @@ span.error {
     background-color: rgba(100, 100, 100, 0.5);
   }
 
-  .a2-hover {
+  &.editable .a2-hover {
     transform: translate(0, 0);
     opacity: 1;
   }
