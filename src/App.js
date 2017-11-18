@@ -30,7 +30,7 @@ const STAT_DICT = {}
 
 
 var updateUrl = function() {
-  window.history.pushState(null, "", "/" + curBuild.toBase64());
+  window.history.pushState(null, "", "/?p=" + curBuild.toBase64());
 }
 var canBuildInto = function(item1, item2) {
   if (item1.id === item2.id) return true;
@@ -45,7 +45,8 @@ var canBuildInto = function(item1, item2) {
   return false;
 }
 
-var buildBin = window.location.href.substring(window.location.href.indexOf('/', 9) + 1);
+var startPos = window.location.href.indexOf('/?p=', 9);
+var buildBin = startPos >= 0 ? window.location.href.substring(startPos + 4) : "";
 var newBuild = false;
 
 var curBuild;
