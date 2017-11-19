@@ -566,7 +566,7 @@ class SummonerBuild extends Component {
       var imgElem = 
         <img 
           src={sumId >= 0 ? getSummonerImage(sumId) : require('./res/ic_edit_white_24px.svg')} 
-          className="sum-icon"/>;
+          className={sumId >= 0 ? "sum-icon" : ""}/>;
       return ( 
         <div className="selected-sum-container">
           <RaisedButton
