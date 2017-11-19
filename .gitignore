@@ -43,9 +43,6 @@ tags
 # Brunch folder for temporary files.
 tmp/
 
-# Brunch output folder.
-public/
-
 # Bower stuff.
 bower_components/
 
