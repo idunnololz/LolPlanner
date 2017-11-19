@@ -70,11 +70,39 @@ class _SummonersLibrary {
 	}
 
 	getSummoner(id) {
-		return this.summonerByKeyDict.data[id];
+		return this.summonerByKeyDict[id];
 	}
 
 	getAllSummoners() {
 		return this.summonersArr;
+	}
+}
+
+class _PerksLibrary {
+	constructor() {
+		this.raw = require('./res/raw/perks.json');
+		this.perksArr = [];
+		var data = this.raw.data;
+	    for (var key in data) {
+	      var perk = data[key];
+	      this.perksArr.push(perk);
+	    }
+	}
+
+	getPerk(id) {
+		return this.raw.data[id];
+	}
+
+	getAllSummoners() {
+		return this.perksArr;
+	}
+
+	getTreeNodes() {
+		return this.raw.treeNodes;
+	}
+
+	getTree(id) {
+		return this.raw.trees[id];
 	}
 }
 
@@ -100,4 +128,5 @@ export const getSummonerImage = function(sumId) {
 export const ItemsLibrary = new _ItemsLibrary();
 export const ChampionsLibrary = new _ChampionsLibrary();
 export const SummonersLibrary = new _SummonersLibrary();
+export const PerksLibrary = new _PerksLibrary();
 

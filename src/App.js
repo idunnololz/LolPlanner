@@ -8,7 +8,7 @@ import {grey200, grey600} from 'material-ui/styles/colors';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlipMove from 'react-flip-move';
-import {getItemImage, getChampionImage, getSummonerImage, ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
+import {getItemImage, getChampionImage, getSummonerImage, PerksLibrary, ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
 import TextField from 'material-ui/TextField';
 import { Scrollbars } from 'react-custom-scrollbars';
 import Build from './build.js';
@@ -31,18 +31,6 @@ const STAT_DICT = {}
 
 var updateUrl = function() {
   window.history.pushState(null, "", "/?p=" + curBuild.toBase64());
-}
-var canBuildInto = function(item1, item2) {
-  if (item1.id === item2.id) return true;
-  if (item1.into == null || item1.into.length === 0) return false;
-  
-  for (let i = 0; i < item1.into.length; i++) {
-    var nextItem = ItemsLibrary.getItem(item1.into[i]);
-    if (canBuildInto(nextItem, item2)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 var startPos = window.location.href.indexOf('/?p=', 9);
@@ -68,34 +56,39 @@ class ItemView2 extends Component {
   }
 
   render() {
+    var padding = 8;
+    var w = this.props.width != null ? this.props.width : 80;
+    var h = this.props.height != null ? this.props.height : 80;
+
+    var innerW = w - padding * 2;
+    var innerH = h - padding * 2;
+
     return (
       <div 
-        data-tip
-        data-for={"item" + this.props.item.name}>
-        <div 
-          onMouseEnter={() => {this.setState({isHovered: true})}}
-          onMouseLeave={() => {this.setState({isHovered: false})}}
-          className={"item-outer " + this.props.className}>
+        onMouseEnter={() => {this.setState({isHovered: true})}}
+        onMouseLeave={() => {this.setState({isHovered: false})}}
+        className={"item-outer " + this.props.className}
+        style={{padding: padding}}>
 
-          <div className="item-img-container">
-            <img src={getItemImage(this.props.item)}/>
-          </div>
-          <div 
-            className={"a1 " + (this.state.isHovered ? "a1-hover" : "")}
-            onClick={() => {this.props.onEditItemClicked()}}>
-            <img src={require('./res/ic_edit_white_24px.svg')}/>
-          </div>
-          <div 
-            className={"a2 " + (this.state.isHovered ? "a2-hover" : "")}
-            onClick={() => {this.props.onDeleteItemClicked()}}>
-            <img src={require('./res/ic_delete_white_24px.svg')}/>
-          </div>
+        <div 
+          className="item-img-container"
+          style={{width: innerW, height: innerH}}>
+          <img 
+            src={getItemImage(this.props.item)}
+            style={{width: innerW + 4, height: innerH + 4}}/>
         </div>
-        <ReactTooltip 
-          id={"item" + this.props.item.name}
-          effect="solid">
-          <div className="rune-tip">{this.props.tip}</div>
-        </ReactTooltip>
+        <div 
+          className={"a1 " + (this.state.isHovered ? "a1-hover" : "")}
+          onClick={() => {this.props.onEditItemClicked()}}
+          style={{width: w, height: h/2}}>
+          <img src={require('./res/ic_edit_white_24px.svg')}/>
+        </div>
+        <div 
+          className={"a2 " + (this.state.isHovered ? "a2-hover" : "")}
+          onClick={() => {this.props.onDeleteItemClicked()}}
+          style={{width: w, height: h/2}}>
+          <img src={require('./res/ic_delete_white_24px.svg')}/>
+        </div>
       </div>
     );
   }
@@ -141,16 +134,51 @@ class ItemBuildStats extends Component {
 outer:
     for (let i = 0; i < build.length; i++) {
       var item = build[i];
+      if (item.tags.includes("Consumable")) continue;
+      if (item.id === 2010) continue; // biscuit (for some reason it's not listed as a consumable)
+
       if (item.tags.includes("Trinket")) {
         trinket = item;
       } else {
-        for (let j = 0; j < finalItems.length; j++) {
-          if (canBuildInto(finalItems[j], item)) {
-            finalItems.splice(j, 1);
-            finalItems.push(item);
-            continue outer;
-          }
+
+        console.dir(item);
+
+        let toCheck = [item.id];
+        while (toCheck.length !== 0) {
+            let itemId = toCheck.shift();
+            let itemInfo = ItemsLibrary.getItem(itemId);
+            if (itemInfo == null) continue;
+
+            let fromItemIds = itemInfo.from;
+
+            if (fromItemIds == null || fromItemIds.length == 0) {
+                continue;
+            }
+
+            fromItemIds.forEach((itemId) => {
+              var index = -1;
+              for (let i = 0; i < finalItems.length; i++) {
+                if (itemId == finalItems[i].id) {
+                  index = i;
+                  break;
+                }
+              }
+
+              if (index > -1) {
+                finalItems.splice(index, 1);
+              } else {
+                toCheck.push(itemId);
+              }
+            });
         }
+
+        // If we are going to add boots to the build, remove any boots already in the build
+        if (item.tags.includes("Boots")) {
+          finalItems = finalItems.filter((item) => {
+            return item.tags.includes("Boots");
+          });
+        }
+
         finalItems.push(item);
         if (finalItems.length > 6) {
           finalItems.splice(0, 1);
@@ -239,7 +267,12 @@ class ItemBuild extends Component {
       isDragging: false,
       dropTarget: null,
       dropItemIndex: -1,
-      dragIndex: -1
+      dragIndex: -1,
+
+      dimensions: {
+        width: -1,
+        height: -1
+      }
     }
 
     this.dragStartHandler = (index, event) => {
@@ -279,11 +312,25 @@ class ItemBuild extends Component {
     }
   }
 
+  componentDidMount() {
+    ReactTooltip.rebuild();
+  }
+
+  componentDidUpdate() {
+    ReactTooltip.rebuild();
+  }
+
   render() {
     var cost = 0;
 
     var startingItems = [];
     var items = [];
+    var tooltips = [];
+
+    const { width, height } = this.state.dimensions;
+
+    const minItemSize = 70;
+    var itemSize = width / Math.floor(width / minItemSize);
 
     this.props.items[0].forEach((itemModel, index) => {
       var item = ItemsLibrary.getItem(itemModel[0]);
@@ -298,16 +345,19 @@ class ItemBuild extends Component {
             onDragExit={this.mouseLeaveHandler}
             onDragStart={this.dragStartHandler.bind(null, index)}
             onDragEnd={this.dragEndHandler}
-            key={itemModel[1]}>
+            key={itemModel[1]}
+            data-tip
+            data-for={item.name}>
+            
             <ItemView2
+              width={itemSize}
+              height={itemSize}
               className={(this.props.reorderItems ? "reorder" : "editable")}
-              tip={item.name}
               item={item} 
               onEditItemClicked={() => {this.props.onEditItemClicked(index)}}
               onDeleteItemClicked={() => {curBuild.deleteItem(0, index)}}/>
-          </div>
-          );
-      } else {
+          </div>);
+      } else { 
         items.push(
           <div
             draggable={this.state.reorderItems ? true : false}
@@ -315,17 +365,26 @@ class ItemBuild extends Component {
             onDragExit={this.mouseLeaveHandler}
             onDragStart={this.dragStartHandler.bind(null, index)}
             onDragEnd={this.dragEndHandler}
-            key={itemModel[1]}>
+            key={itemModel[1]}
+            data-tip
+            data-for={item.name}>
+
             <ItemView2
+              width={itemSize}
+              height={itemSize}
               onDragStart={this.dragStartHandler}
               className={(this.props.reorderItems ? "reorderable" : "editable")}
-              tip={item.name}
               item={item} 
               onEditItemClicked={() => {this.props.onEditItemClicked(index)}}
               onDeleteItemClicked={() => {curBuild.deleteItem(0, index)}}/>
-          </div>
-          );
+          </div>);
       }
+
+      tooltips.push(
+        <ReactTooltip id={item.name} effect='solid'>
+          <div><span><b>{item.name}</b></span></div>
+        </ReactTooltip>
+        );
     })
 
     var addItemElem;
@@ -333,7 +392,7 @@ class ItemBuild extends Component {
       addItemElem = (
         <div className="add-item-outer">
           <RaisedButton
-            style={{height: 80, width: 80, 'min-width': 0}}
+            style={{height: itemSize, width: itemSize, 'min-width': 0}}
             primary={true} 
             icon={<img src={require('./res/ic_add_white_24px.svg')}/>}
             onClick={() => this.props.onAddItemClicked()}/>
@@ -341,24 +400,36 @@ class ItemBuild extends Component {
     }
 
     return (
-      <FlipMove
-        duration={250} 
-        easing="ease-out"
-        className="item-build">
+      <Measure
+        bounds
+        onResize={(contentRect) => {
+          this.setState({ dimensions: contentRect.bounds })
+        }}>
+        {({ measureRef }) =>
+          <div ref={measureRef}>
+            <FlipMove
+              duration={250} 
+              easing="ease-out"
+              className="item-build">
 
-        {startingItems.length === 0 ? null : 
-          <FlipMove
-            duration={250} 
-            easing="ease-out" 
-            className="starting-items">
-            {startingItems}
-            <p>STARTING</p>
-          </FlipMove>}
+              {startingItems.length === 0 ? null : 
+                <FlipMove
+                  duration={250} 
+                  easing="ease-out" 
+                  className="starting-items">
+                  {startingItems}
+                  <p>STARTING</p>
+                </FlipMove>}
 
-        {items}
+              {items}
 
-        {addItemElem}
-      </FlipMove>
+              {addItemElem}
+
+              {tooltips}
+            </FlipMove>
+          </div>
+        }
+      </Measure>
     );
   }
 }
@@ -374,7 +445,6 @@ class SkillBuild extends Component {
         height: -1
       }
     };
-    console.dir(props);
     this.props.skillSequence[0];
   }
 
@@ -382,9 +452,9 @@ class SkillBuild extends Component {
     var totals = [0, 0, 0, 0];
 
     for (let i = 0; i < skillSeq.length; i++) {
-        if (skillSeq[i] >= 0) {
-          totals[skillSeq[i]]++;
-        }
+      if (skillSeq[i] >= 0) {
+        totals[skillSeq[i]]++;
+      }
     }
 
     if (totals[0] > 5 || totals[1] > 5 || totals[2] > 5 || totals[3] > 3) {
@@ -446,8 +516,7 @@ class SkillBuild extends Component {
           onClick={onClickListener}>
           {text}
           {content}
-        </div>
-        );
+        </div>);
     }
 
     return elems;
@@ -459,10 +528,12 @@ class SkillBuild extends Component {
 
     var error = this.validateSkillSeq(skillSeq);
 
-    var errorText;
+    var errorElem;
     if (error) {
-      errorText = (
-        <span className="error">{error}</span>
+      errorElem = (
+        <div>
+          <span className="error">{error}</span>
+        </div>
       )
     }
 
@@ -482,9 +553,7 @@ class SkillBuild extends Component {
           }
         </Measure>
 
-        <div>
-          {errorText}
-        </div>
+        {errorElem}
       </FlipMove>);
   }
 }
@@ -492,175 +561,87 @@ class SkillBuild extends Component {
 class SummonerBuild extends Component {
   render() {
     var sumIds = this.props.sums;
-    var sum0Component;
-    var sum1Component;
 
-    if (sumIds[0] >= 0) {
-      sum0Component = 
+    var sumElems = sumIds.map((sumId, index) => {
+      var imgElem = 
+        <img 
+          src={sumId >= 0 ? getSummonerImage(sumId) : require('./res/ic_edit_white_24px.svg')} 
+          className="sum-icon"/>;
+      return ( 
         <div className="selected-sum-container">
           <RaisedButton
-            className="selected-sum"
+            className={sumId >= 0 ? "selected-sum" : ""}
             style={{width: 64, height: 64, 'min-width': 0}}
             primary={true} 
-            icon={<img src={getSummonerImage(sumIds[0])} className="sum-icon"/>}
-            onClick={() => this.props.onEditItemClicked(0)} />
-        </div>
-    } else {
-      sum0Component = 
-        <div className="selected-sum-container">
-          <RaisedButton
-            style={{width: 64, height: 64, 'min-width': 0}}
-            primary={true} 
-            icon={<img src={require('./res/ic_edit_white_24px.svg')}/>}
-            onClick={() => this.props.onEditItemClicked(0)} />
-        </div>
-    }
-
-    if (sumIds[1] >= 0) {
-      sum1Component = 
-        <div className="selected-sum-container">
-          <RaisedButton
-            className="selected-sum"
-            style={{width: 64, height: 64, 'min-width': 0}}
-            primary={true} 
-            icon={<img src={getSummonerImage(sumIds[1])} className="sum-icon"/>}
-            onClick={() => this.props.onEditItemClicked(1)} />
-        </div>
-    } else {
-      sum1Component = 
-        <div className="selected-sum-container">
-          <RaisedButton
-            style={{width: 64, height: 64, 'min-width': 0}}
-            primary={true} 
-            icon={<img src={require('./res/ic_edit_white_24px.svg')}/>}
-            onClick={() => this.props.onEditItemClicked(1)} />
-        </div>
-    }
+            icon={imgElem}
+            onClick={() => this.props.onEditItemClicked(index)} />
+        </div>);
+    });
 
     return (
       <div class="sums-container">
-        {sum0Component}
+        {sumElems[0]}
         <div style={{width: 16}}/>
-        {sum1Component}
+        {sumElems[1]}
       </div>);
   }
 }
 
 const groupSizes = [5, 3, 3, 3, 3, 4, 3, 3, 3];
-const treeTips = [
-  [0, [<b>Precision</b>,<p>IMPROVED ATTACKS AND SUSTAINED DAMAGE</p>]],
-  [1, [<b>Domination</b>,<p>BURST DAMAGE AND TARGET ACCESS</p>]],
-  [2, [<b>Sorcery</b>,<p>EMPOWERED ABILITIES AND RESOURCE MANIPULATION</p>]],
-  [3, [<b>Resolve</b>,<p>DURABILITY AND CROWD CONTROL</p>]],
-  [4, [<b>Inspiration</b>,<p>CREATIVE TOOLS AND RULE BENDING</p>]],
-  ];
-const treeSubTips = [
-  [
-    [
-      "Overheal",
-      "Triumph",
-      "Precense of Mind"
-    ],
-    [
-      "Legend: Alacrity",
-      "Legend: Tenacity",
-      "Legend: Bloodline"
-    ],
-    [
-      "Coup de Grace",
-      "Cut Down",
-      "Last Stand"
-    ],
-  ],
-  [[],[],[]],
-  [[],[],[]],
-  [[],[],[]],
-  [[],[],[]]
-]
-const runesTip = [
-  [
-    <span><b>Press the attack</b></span>,
-    <span><b>Lethal tempo</b></span>,
-    <span><b>Fleet footwork</b></span>
-  ],
-  [
-    [], [], [], [], [], [], [], [],
-  ],
-  [
-    [], [], [], [], [], [], [], [],
-  ],
-  [
-    [], [], [], [], [], [], [], [],
-  ],
-  [
-    <span><b>Unsealed Spellbook</b> - Get Summoner Shards and exchange 
-    them at the shop to change your Summoner Spells during game. Your 
-    Summoner Spells have reduced cooldown.</span>,
-    <span><b>Glacial Augment</b> - Your first attack against an enemy champion 
-    slows them (per unit cooldown). Slowing champions with active items 
-    shoots a freeze ray at them, creating a lingering slow zone.</span>,
-    <span><b>Kleptomancy</b> - Your first attack after using an ability 
-    grants gold and sometimes consumables.</span>
-  ]
-];
 class RunesBuild extends Component {
-  constructor(props) {
-    super(props);
-  }
-
-  makeGroup(index) {
+  makeGroup(rowIndex) {
     var runes = this.props.runes;
     var treeState = runes[0];
-    var subTreeState = treeState >= 0 && runes[5] >= 0 ? treeTips.filter((e, i) => {return i != treeState})[runes[5]][0] : -1;
+    var primaryTreeId = treeState >= 0 ? PerksLibrary.getTreeNodes()[treeState] : -1;
+    var subTreeState = treeState >= 0 && runes[5] >= 0 ? runes[5] : -1;
+    var subTreeId = subTreeState >= 0 ? PerksLibrary.getTreeNodes().filter(e => {return e !== primaryTreeId})[subTreeState] : -1;
 
-    console.log(`subTreeState: ${subTreeState}`)
+    return [...Array(groupSizes[rowIndex]).keys()].map((e) => {
+      var className = runes[rowIndex] === e ? "item-selected" : "";
 
-    return [...Array(groupSizes[index]).keys()].map((e) => {
-      var className = runes[index] === e ? "item-selected" : "item";
-      var tip;
-      if (index === 0) {
-        tip = treeTips[e][1];
-      } else if (index === 1) {
-        if (treeState >= 0) {
-          tip = runesTip[treeState][e];
+      var perk;
+      if (rowIndex === 0) {
+        perk = PerksLibrary.getPerk(PerksLibrary.getTreeNodes()[e]);
+      } else if (rowIndex >= 1 && rowIndex <= 4) {
+        if (primaryTreeId >= 0) {
+          perk = PerksLibrary.getPerk(PerksLibrary.getTree(primaryTreeId)[rowIndex][e]);
         } else {
-          tip = "Pick a primary rune";
+          perk = -1;
         }
-      } else if (index >= 2 && index <= 4) {
-        if (treeState >= 0) {
-          tip = treeSubTips[treeState][index - 2][e];
+      } else if (rowIndex === 5) {
+        if (primaryTreeId >= 0) {
+          perk = PerksLibrary.getPerk(PerksLibrary.getTreeNodes().filter(e => {return e !== primaryTreeId})[e]);
         } else {
-          tip = "Pick a primary rune";
+          perk = -1;
         }
-        //console.log(`ts:${treeState} idx:${index} e:${e}`)
-        //tip = treeState >= 0 ? runeTip[treeState][index - 1][e] : null;
-      } else if (index === 5) {
-        if (treeState >= 0) {
-          tip = treeTips.filter((e, i) => {return i != treeState})[e][1];
+      } else if (rowIndex > 5) {
+        if (subTreeId >= 0) {
+          perk = PerksLibrary.getPerk(PerksLibrary.getTree(subTreeId)[rowIndex - 4][e]);
         } else {
-          tip = "Pick a primary rune";
+          perk = -2;
         }
-      } else if (index > 5) {
-        if (subTreeState >= 0) {
-          tip = treeSubTips[subTreeState][index - 6][e];
-        } else {
-          tip = "Pick a secondary rune";
-        }
-      } else {
-        tip = "Rito pls";
       }
+
+      var tip;
+      if (perk === -1) {
+        tip = <span>Pick a <b>primary style</b></span>
+      } else if (perk === -2) {
+        tip = <span>Pick a <b>secondary style</b></span>
+      } else {
+        tip = <div><b>{perk.name}</b><br/><div dangerouslySetInnerHTML={{__html: perk.desc}} /></div>
+      }
+
       return (
         <div>
           <div
             data-tip
-            data-for={"a" + index + "b" + e}
-            className={className} 
-            onClick={() => curBuild.setRuneAt(index, e)}/>
-          <ReactTooltip id={"a" + index + "b" + e}>
+            data-for={"a" + rowIndex + "b" + e}
+            className={"item " +className} 
+            onClick={() => curBuild.setRuneAt(rowIndex, e)}/>
+          <ReactTooltip id={"a" + rowIndex + "b" + e}>
             <div className="rune-tip">{tip}</div>
           </ReactTooltip>
-        </div>
-        );
+        </div>);
     })
   }
 
@@ -670,45 +651,29 @@ class RunesBuild extends Component {
     return (
       <div className="runes-container">
         <div className="runes-container-row">
-          <div>
-            {this.makeGroup(0)}
-          </div>
+          <div>{this.makeGroup(0)}</div>
           <div className="divider"/>
-          <div>
-            {this.makeGroup(1)}
-          </div>
+          <div>{this.makeGroup(1)}</div>
           <div className="divider"/>
-          <div>
-            {this.makeGroup(2)}
-          </div>
+          <div>{this.makeGroup(2)}</div>
           <div className="divider"/>
-          <div>
-            {this.makeGroup(3)}
-          </div>
+          <div>{this.makeGroup(3)}</div>
           <div className="divider"/>
-          <div>
-            {this.makeGroup(4)}
-          </div>
+          <div>{this.makeGroup(4)}</div>
         </div>
 
-        <div style={{width: 16}}/>
+        <div style={{width: 8}}/>
+        <div className="vertical-divider"/>
+        <div style={{width: 8}}/>
 
         <div className="runes-container-row">
-          <div>
-            {this.makeGroup(5)}
-          </div>
+          <div>{this.makeGroup(5)}</div>
           <div className="divider"/>
-          <div>
-            {this.makeGroup(6)}
-          </div>
+          <div>{this.makeGroup(6)}</div>
           <div className="divider"/>
-          <div>
-            {this.makeGroup(7)}
-          </div>
+          <div>{this.makeGroup(7)}</div>
           <div className="divider"/>
-          <div>
-            {this.makeGroup(8)}
-          </div>
+          <div>{this.makeGroup(8)}</div>
         </div>
       </div>
     );
@@ -755,15 +720,13 @@ class App extends Component {
   }
 
   renderThumb({ style, ...props }) {
-      const { top } = this.state;
       const thumbStyle = {
           backgroundColor: '#c9ba9d'
       };
       return (
-          <div
-              style={{ ...style, ...thumbStyle }}
-              {...props}/>
-      );
+        <div
+          style={{ ...style, ...thumbStyle }}
+          {...props}/>);
   }
 
   render() {
@@ -774,7 +737,7 @@ class App extends Component {
       this.setState({panelToShow: -1});
     }
 
-    var pickerClass = "side-panel";
+    var pickerClass = "";
 
     if (this.state.panelToShow == 4) {
       picker = 
@@ -877,6 +840,7 @@ class App extends Component {
         );
     }
 
+    var buildItems = this.state.build.getItemIds();
     var itemSectionButtons;
     if (this.state.reorderItems) {
       itemSectionButtons = [
@@ -885,11 +849,16 @@ class App extends Component {
           </IconButton>
         ];
     } else {
+      var disableReorder = buildItems == null || buildItems.length == 0 || buildItems[0] == null || buildItems[0].length <= 1;
       itemSectionButtons = [
-          <IconButton key="0" onClick={() => {this.setState({reorderItems: true})}}>
+          <IconButton 
+            key="0" 
+            onClick={() => this.setState({reorderItems: true})}
+            disabled={disableReorder}
+            style={{opacity: disableReorder ? .33 : 1}}>
             <img src={require('./res/ic_reorder_white_24px.svg')}/>
           </IconButton>,
-          <IconButton key="1" onClick={() => {this.setState({panelToShow: 5})}}>
+          <IconButton key="1" onClick={() => this.setState({panelToShow: 5})}>
             <img src={require('./res/ic_pie_chart_white_24px.svg')}/>
           </IconButton>,
           <IconButton key="2" onClick={() => this.setState({confirmClearItemsDialogOpen: true})}>
@@ -917,9 +886,6 @@ class App extends Component {
         <FlipMove
           duration={250} easing="ease-out"
           className="App">
-
-          <ReactTooltip 
-            effect="solid"/>
 
           <ToastContainer 
             toastClassName="dark-toast"
@@ -954,17 +920,11 @@ class App extends Component {
                   <img src={require('./res/ic_link_white_24px.svg')}/>
                 </IconButton>
 
-                <IconButton onClick={
-                    () => {
-                      this.setState({panelToShow: 6});
-                    }
-                  }>
+                <IconButton onClick={() => this.setState({panelToShow: 6})}>
                   <img src={require('./res/ic_settings_white_24px.svg')}/>
                 </IconButton>
 
-                <IconButton onClick={() => {
-                  this.setState({confirmDeleteDialogOpen: true})}
-                  }>
+                <IconButton onClick={() => this.setState({confirmDeleteDialogOpen: true})}>
                   <img src={require('./res/ic_clear_white_24px.svg')}/>
                 </IconButton>
               </div>
@@ -977,7 +937,7 @@ class App extends Component {
                 <SummonerBuild sums={this.state.build.getSummonerIds()} onEditItemClicked={(index) => this.setState({panelToShow: 3, index: index})}/>
               </div>
               
-              <div style={{height: 16}}/>
+              <div style={{height: 8}}/>
 
               <div className={"item-build-section-container" + (this.state.reorderItems ? " reorder" : "")}>
                 <FlipMove
@@ -998,7 +958,7 @@ class App extends Component {
                 </div>
               </div>
 
-              <div style={{height: 16}}/>
+              <div style={{height: 8}}/>
 
               <div className="section-header">
                 <h3>SKILL ORDER</h3>
@@ -1007,7 +967,7 @@ class App extends Component {
                 <SkillBuild skillSequence={this.state.build.getSkillSequence()}/>
               </div>
 
-              <div style={{height: 16}}/>
+              <div style={{height: 8}}/>
               
               <div className="section-header">
                 <h3>RUNES</h3>
@@ -1017,7 +977,7 @@ class App extends Component {
               </div>
             </div>
           </Scrollbars>
-          <div className={pickerClass}>
+          <div className={"side-panel" + pickerClass}>
             {picker}
           </div>
         </FlipMove>

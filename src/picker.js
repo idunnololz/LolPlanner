@@ -5,6 +5,7 @@ import IconButton from 'material-ui/IconButton';
 import { Scrollbars } from 'react-custom-scrollbars';
 import {grey200, grey600} from 'material-ui/styles/colors';
 import FlipMove from 'react-flip-move';
+import ReactTooltip from 'react-tooltip'
 
 import {MuiTheme} from './theme';
 import {getItemImage, getChampionImage, getSummonerImage, ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
@@ -131,14 +132,19 @@ export class ItemPicker extends Component {
             <div className="items-container" duration={300} easing="ease-out">
               {items.map((e) => {
                 return (
-                  <ItemView 
-                    data-tip={e.name}
-                    item={e} 
-                    key={e.id} 
-                    onClick={() => {this.props.onItemSelected(e)}}/>);
+                	<div
+                  	data-tip={e.name}>
+
+	                  <ItemView 
+	                    item={e} 
+	                    key={e.id} 
+	                    onClick={() => {this.props.onItemSelected(e)}}/>
+                  </div>);
               })}
             </div>
           </Scrollbars>
+
+          <ReactTooltip />
         </div>
     );
   }
