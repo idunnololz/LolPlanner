@@ -141,9 +141,6 @@ outer:
       if (item.tags.includes("Trinket")) {
         trinket = item;
       } else {
-
-        console.dir(item);
-
         let toCheck = [item.id];
         while (toCheck.length !== 0) {
             let itemId = toCheck.shift();
@@ -176,7 +173,7 @@ outer:
         // If we are going to add boots to the build, remove any boots already in the build
         if (item.tags.includes("Boots")) {
           finalItems = finalItems.filter((item) => {
-            return item.tags.includes("Boots");
+            return !item.tags.includes("Boots");
           });
         }
 
@@ -851,6 +848,7 @@ class App extends Component {
         ];
     } else {
       var disableReorder = buildItems == null || buildItems.length == 0 || buildItems[0] == null || buildItems[0].length <= 1;
+      var disableAnalyze = buildItems == null || buildItems.length == 0 || buildItems[0] == null || buildItems[0].length < 1;
       itemSectionButtons = [
           <IconButton 
             key="0" 
@@ -859,7 +857,11 @@ class App extends Component {
             style={{opacity: disableReorder ? .33 : 1}}>
             <img src={require('./res/ic_reorder_white_24px.svg')}/>
           </IconButton>,
-          <IconButton key="1" onClick={() => this.setState({panelToShow: 5})}>
+          <IconButton 
+            key="1" 
+            onClick={() => this.setState({panelToShow: 5})}
+            disabled={disableAnalyze}
+            style={{opacity: disableAnalyze ? .33 : 1}}>
             <img src={require('./res/ic_pie_chart_white_24px.svg')}/>
           </IconButton>,
           <IconButton key="2" onClick={() => this.setState({confirmClearItemsDialogOpen: true})}>
