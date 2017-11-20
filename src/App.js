@@ -22,6 +22,7 @@ import ReactTooltip from 'react-tooltip'
 import Util from './util';
 import {ItemView, ItemPicker, ChampionPicker, SummonerPicker} from './picker';
 import {MuiTheme} from './theme';
+import {LeftAd, RightAd} from './ad';
 
 const STAT_TYPE_DEFAULT = 0;
 const STAT_TYPE_PERCENT = 1;
@@ -906,75 +907,82 @@ class App extends Component {
             renderThumbVertical={this.renderThumb}
             {...this.props}>
 
-            <div className="main">
-              <div className="section-header">
-                <h1 className="App-title">Build Planner</h1>
+            <div className="main-outer">
 
-                <div className="spacer-1-flex"/>
+              <LeftAd />
 
-                <IconButton onClick={
-                    () => {
-                      Util.copyTextToClipboard(window.location.href); 
-                      toast("Copied to clipboard!");
-                  }}>
-                  <img src={require('./res/ic_link_white_24px.svg')}/>
-                </IconButton>
-
-                <IconButton onClick={() => this.setState({panelToShow: 6})}>
-                  <img src={require('./res/ic_settings_white_24px.svg')}/>
-                </IconButton>
-
-                <IconButton onClick={() => this.setState({confirmDeleteDialogOpen: true})}>
-                  <img src={require('./res/ic_clear_white_24px.svg')}/>
-                </IconButton>
-              </div>
-
-              <div className="champion-sums-container">
-                {championComponent}
-
-                <div style={{width: 16}}/>
-
-                <SummonerBuild sums={this.state.build.getSummonerIds()} onEditItemClicked={(index) => this.setState({panelToShow: 3, index: index})}/>
-              </div>
-              
-              <div style={{height: 8}}/>
-
-              <div className={"item-build-section-container" + (this.state.reorderItems ? " reorder" : "")}>
-                <FlipMove
-                  duration={250} easing="ease-out"
-                  className="section-header">
-                  <h3>{this.state.reorderItems ? "DRAG & DROP TO REORDER" : "ITEMS"}</h3>
+              <div className="main">
+                <div className="section-header">
+                  <h1 className="App-title">Build Planner</h1>
 
                   <div className="spacer-1-flex"/>
 
-                  {itemSectionButtons}
-                </FlipMove>
+                  <IconButton onClick={
+                      () => {
+                        Util.copyTextToClipboard(window.location.href); 
+                        toast("Copied to clipboard!");
+                    }}>
+                    <img src={require('./res/ic_link_white_24px.svg')}/>
+                  </IconButton>
+
+                  <IconButton onClick={() => this.setState({panelToShow: 6})}>
+                    <img src={require('./res/ic_settings_white_24px.svg')}/>
+                  </IconButton>
+
+                  <IconButton onClick={() => this.setState({confirmDeleteDialogOpen: true})}>
+                    <img src={require('./res/ic_clear_white_24px.svg')}/>
+                  </IconButton>
+                </div>
+
+                <div className="champion-sums-container">
+                  {championComponent}
+
+                  <div style={{width: 16}}/>
+
+                  <SummonerBuild sums={this.state.build.getSummonerIds()} onEditItemClicked={(index) => this.setState({panelToShow: 3, index: index})}/>
+                </div>
+                
+                <div style={{height: 8}}/>
+
+                <div className={"item-build-section-container" + (this.state.reorderItems ? " reorder" : "")}>
+                  <FlipMove
+                    duration={250} easing="ease-out"
+                    className="section-header">
+                    <h3>{this.state.reorderItems ? "DRAG & DROP TO REORDER" : "ITEMS"}</h3>
+
+                    <div className="spacer-1-flex"/>
+
+                    {itemSectionButtons}
+                  </FlipMove>
+                  <div className="content-container">
+                    <ItemBuild 
+                      reorderItems={this.state.reorderItems}
+                      onAddItemClicked={() => this.setState({panelToShow: 1})} 
+                      onEditItemClicked={(index) => this.setState({editingItem: index, panelToShow: 4})}
+                      items={this.state.build.getItemIds()}/>
+                  </div>
+                </div>
+
+                <div style={{height: 8}}/>
+
+                <div className="section-header">
+                  <h3>SKILL ORDER</h3>
+                </div>
                 <div className="content-container">
-                  <ItemBuild 
-                    reorderItems={this.state.reorderItems}
-                    onAddItemClicked={() => this.setState({panelToShow: 1})} 
-                    onEditItemClicked={(index) => this.setState({editingItem: index, panelToShow: 4})}
-                    items={this.state.build.getItemIds()}/>
+                  <SkillBuild skillSequence={this.state.build.getSkillSequence()}/>
+                </div>
+
+                <div style={{height: 8}}/>
+                
+                <div className="section-header">
+                  <h3>RUNES</h3>
+                </div>
+                <div className="content-container">
+                  <RunesBuild runes={this.state.build.getRunes()}/>
                 </div>
               </div>
 
-              <div style={{height: 8}}/>
-
-              <div className="section-header">
-                <h3>SKILL ORDER</h3>
-              </div>
-              <div className="content-container">
-                <SkillBuild skillSequence={this.state.build.getSkillSequence()}/>
-              </div>
-
-              <div style={{height: 8}}/>
-              
-              <div className="section-header">
-                <h3>RUNES</h3>
-              </div>
-              <div className="content-container">
-                <RunesBuild runes={this.state.build.getRunes()}/>
-              </div>
+              <RightAd />
             </div>
           </Scrollbars>
           <div className={"side-panel" + pickerClass}>
