@@ -384,7 +384,8 @@ div {
     align-items: flex-start; }
   .main-outer .ad {
     width: 100%;
-    height: 100%; }
+    height: 100%;
+    display: inline-block; }
   .main-outer .ad-container {
     height: 100%;
     overflow: hidden; }
@@ -419,7 +420,8 @@ div {
         top: -100%;
         bottom: -100%;
         position: absolute;
-        margin: auto; }
+        margin: auto;
+        overflow: hidden; }
     .main-outer .main .edit-champion-container {
       border: 2px solid #c9ba9d;
       width: 100px;
@@ -729,22 +731,28 @@ h4 {
     display: none; }
 
   .main-outer .ad-right-banner {
+    display: none; }
+
+  .main-outer .ad-container {
     display: none; } }
 @media (max-width: 1080px) {
   .side-panel {
     position: absolute;
     right: 0px;
-    width: 100%;
     height: 100%;
-    max-width: 400px; } }
+    width: 100%;
+    max-width: 400px; }
+
+  .side-panel-collapsed {
+    width: 0px; } }
 @media (max-width: 700px) {
   .main-outer .main {
     flex: 0; } }
 @media (max-width: 600px) {
   .runes-container .item-selected {
     box-sizing: border-box;
-    width: 8vw;
-    height: 8vw;
+    width: 7vw;
+    height: 7vw;
     border-radius: 50%;
     background: #c9ba9d;
     margin-right: 2vw;
@@ -752,8 +760,8 @@ h4 {
   .runes-container .item {
     box-sizing: border-box;
     border: 2px solid #c9ba9d;
-    height: 8vw;
-    width: 8vw;
+    height: 7vw;
+    width: 7vw;
     border-radius: 50%;
     padding-right: 2vw;
     cursor: pointer; }
@@ -761,8 +769,11 @@ h4 {
   .side-panel {
     position: absolute;
     right: 0px;
-    width: 100%;
     height: 100%;
-    max-width: 230px; } }
+    width: 100%;
+    max-width: 230px; }
+
+  .side-panel-collapsed {
+    width: 0px; } }
 
 /*# sourceMappingURL=App.css.map */

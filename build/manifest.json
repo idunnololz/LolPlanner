@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Build Planner",
+  "name": "League of Legends Build Planner",
   "icons": [
     {
       "src": "favicon.ico",
