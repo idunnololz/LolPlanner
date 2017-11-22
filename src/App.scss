@@ -216,17 +216,6 @@
     height: 24px;
   }
 
-  .selected-champion {
-    left: -100%;
-    right: -100%;
-    top: -100%;
-    bottom: -100%;
-    position: absolute;
-    margin: auto;
-    min-height: 100%;
-    min-width: 100%;
-  }
-
   .selected-champion-container {
     border: 2px solid $accent-color; 
     width: 100px;
@@ -234,8 +223,16 @@
     position: relative;
     overflow: hidden;
     border-radius: 50%;
-  }
 
+    .selected-champion {
+      left: -100%;
+      right: -100%;
+      top: -100%;
+      bottom: -100%;
+      position: absolute;
+      margin: auto;
+    }
+  }
 
   .edit-champion-container {
     border: 2px solid $accent-color; 

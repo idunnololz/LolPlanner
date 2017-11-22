@@ -394,15 +394,6 @@
     padding-top: 20px;
     width: 24px;
     height: 24px; }
-  .main .selected-champion {
-    left: -100%;
-    right: -100%;
-    top: -100%;
-    bottom: -100%;
-    position: absolute;
-    margin: auto;
-    min-height: 100%;
-    min-width: 100%; }
   .main .selected-champion-container {
     border: 2px solid #c9ba9d;
     width: 100px;
@@ -410,6 +401,13 @@
     position: relative;
     overflow: hidden;
     border-radius: 50%; }
+    .main .selected-champion-container .selected-champion {
+      left: -100%;
+      right: -100%;
+      top: -100%;
+      bottom: -100%;
+      position: absolute;
+      margin: auto; }
   .main .edit-champion-container {
     border: 2px solid #c9ba9d;
     width: 100px;

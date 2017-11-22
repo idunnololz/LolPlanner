@@ -836,6 +836,7 @@ class App extends Component {
           </div>
         </div>
         );
+      overlay = null;
     }
 
     var buildItems = this.state.build.getItemIds();
@@ -927,7 +928,7 @@ class App extends Component {
                     <img src={require('./res/ic_link_white_24px.svg')}/>
                   </IconButton>
 
-                  <IconButton onClick={() => this.setState({panelToShow: 6})}>
+                  <IconButton style={{display: 'none'}} onClick={() => this.setState({panelToShow: 6})}>
                     <img src={require('./res/ic_settings_white_24px.svg')}/>
                   </IconButton>
 
