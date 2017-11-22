@@ -264,7 +264,7 @@ case 3504: return require('./res/item_thumb/3504.png');
 case 3069: return require('./res/item_thumb/3069.png'); 
 case 3742: return require('./res/item_thumb/3742.png'); 
 case 3508: return require('./res/item_thumb/3508.png'); 
-default: console.log('Invalid id: ${id}'); return null;
+default: console.log(`Invalid id: ${id}`); return null;
 
 	}
 }
@@ -409,7 +409,7 @@ case 59: return require('./res/champions_thumb/JarvanIV.png');
 case 90: return require('./res/champions_thumb/Malzahar.png'); 
 case 154: return require('./res/champions_thumb/Zac.png'); 
 case 79: return require('./res/champions_thumb/Gragas.png'); 
-default: console.log('Invalid id: ${id}'); return null;
+default: console.log(`Invalid id: ${id}`); return null;
 
 	}
 }
@@ -433,7 +433,7 @@ case 34: return require('./res/summoner/SummonerSiegeChampSelect2.png');
 case 3: return require('./res/summoner/SummonerExhaust.png'); 
 case 14: return require('./res/summoner/SummonerDot.png'); 
 case 6: return require('./res/summoner/SummonerHaste.png'); 
-default: console.log('Invalid id: ${id}'); return null;
+default: console.log(`Invalid id: ${id}`); return null;
 
 	}
 }

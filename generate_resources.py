@@ -11,7 +11,7 @@ str = ""
 for key, value in data["data"].items():
 	str += "case %s: return require('%s/item_thumb/%s'); \n" % (key, baseDir, value["image"]); 
 
-str += "default: console.log('Invalid id: ${id}'); return null;\n"
+str += "default: console.log(`Invalid id: ${id}`); return null;\n"
 
 template = """
 export function getItemImageFor(id) {
@@ -31,7 +31,7 @@ str = ""
 for key, value in data["data"].items():
 	str += "case %s: return require('%s/champions_thumb/%s'); \n" % (value["id"], baseDir, key + ".png"); 
 
-str += "default: console.log('Invalid id: ${id}'); return null;\n"
+str += "default: console.log(`Invalid id: ${id}`); return null;\n"
 
 template += """
 export function getChampionImageFor(id) {
@@ -51,7 +51,7 @@ str = ""
 for key, value in data["data"].items():
 	str += "case %s: return require('%s/summoner/%s'); \n" % (value["id"], baseDir, key + ".png"); 
 
-str += "default: console.log('Invalid id: ${id}'); return null;\n"
+str += "default: console.log(`Invalid id: ${id}`); return null;\n"
 
 template += """
 export function getSummonerImageFor(id) {

@@ -3,7 +3,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField';
 import IconButton from 'material-ui/IconButton';
 import { Scrollbars } from 'react-custom-scrollbars';
-import {grey200, grey600} from 'material-ui/styles/colors';
+import {grey600} from 'material-ui/styles/colors';
 import FlipMove from 'react-flip-move';
 import ReactTooltip from 'react-tooltip'
 
@@ -39,7 +39,7 @@ class SummonerView extends Component {
         backgroundColor="#1A3C42"
         className="item"
         style={{width: '80px', height: '80px'}}
-        icon={<img src={getSummonerImage(this.props.item)}/>}
+        icon={<img alt="Edit" src={getSummonerImage(this.props.item)}/>}
         onClick={this.props.onClick}/>
     );
   }
@@ -60,7 +60,7 @@ export class ItemView extends Component {
         backgroundColor="#1A3C42"
         className="item"
         style={{width: 68, height: 68, 'min-width': 0}}
-        icon={<img src={getItemImage(this.props.item)}/>}
+        icon={<img alt="Add item" src={getItemImage(this.props.item)}/>}
         onClick={this.props.onClick}/>
       );
   }
@@ -85,7 +85,6 @@ export class ItemPicker extends Component {
   }
 
   renderThumb({ style, ...props }) {
-      const { top } = this.state;
       const thumbStyle = {
           backgroundColor: '#c9ba9d'
       };
@@ -108,7 +107,7 @@ export class ItemPicker extends Component {
               <div className="spacer-1-flex"/>
 
               <IconButton onClick={this.props.onCloseClicked}>
-                <img src={require('./res/ic_close_white_24px.svg')}/>
+                <img alt="Close" src={require('./res/ic_close_white_24px.svg')}/>
               </IconButton>
             </div>
             <TextField
@@ -167,7 +166,6 @@ export class ChampionPicker extends Component {
   }
 
   renderThumb({ style, ...props }) {
-      const { top } = this.state;
       const thumbStyle = {
           backgroundColor: '#c9ba9d'
       };
@@ -192,7 +190,7 @@ export class ChampionPicker extends Component {
             <div className="spacer-1-flex"/>
 
             <IconButton onClick={this.props.onCloseClicked}>
-              <img src={require('./res/ic_close_white_24px.svg')}/>
+              <img alt="Close" src={require('./res/ic_close_white_24px.svg')}/>
             </IconButton>
           </div>
           <TextField
@@ -245,7 +243,6 @@ export class SummonerPicker extends Component {
   }
 
   renderThumb({ style, ...props }) {
-      const { top } = this.state;
       const thumbStyle = {
           backgroundColor: '#c9ba9d'
       };
@@ -268,7 +265,7 @@ export class SummonerPicker extends Component {
             <div className="spacer-1-flex"/>
 
             <IconButton onClick={this.props.onCloseClicked}>
-              <img src={require('./res/ic_close_white_24px.svg')}/>
+              <img alt="Close" src={require('./res/ic_close_white_24px.svg')}/>
             </IconButton>
           </div>
           <TextField

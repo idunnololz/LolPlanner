@@ -72,20 +72,20 @@ class Build {
 
   addItemToCurrentGroup(item) {
     var curGroup = this.json.itemIds[this.json.itemIds.length - 1];
-    var itemId = parseInt(item.id);
+    var itemId = parseInt(item.id, 10);
     curGroup.push([itemId, this.json.counter++]);
 
     this.listeners.forEach(elem => elem.onItemsChanged());
   }
 
   modifyItem(group, index, item) {
-  	this.json.itemIds[group][index][IDX_ITEM_ID] = parseInt(item.id);
+  	this.json.itemIds[group][index][IDX_ITEM_ID] = parseInt(item.id, 10);
 
     this.listeners.forEach(elem => elem.onItemsChanged());
   }
 
   moveItem(group, oldIndex, newIndex) {
-    if (oldIndex == newIndex) {
+    if (oldIndex === newIndex) {
       return;
     }
     var itemToMove = this.json.itemIds[group][oldIndex];
@@ -172,8 +172,7 @@ class Build {
   }
 
   setChampionId(championId) {
-  	championId = parseInt(championId);
-  	console.log(championId);
+  	championId = parseInt(championId, 10);
     if (this.json.championId === championId) return;
     this.json.championId = championId;
 

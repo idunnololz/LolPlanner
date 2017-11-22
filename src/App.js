@@ -1,19 +1,14 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import $ from "jquery";
-
-import {grey200, grey600} from 'material-ui/styles/colors';
 
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlipMove from 'react-flip-move';
 import {getItemImage, getChampionImage, getSummonerImage, PerksLibrary, ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
-import TextField from 'material-ui/TextField';
 import { Scrollbars } from 'react-custom-scrollbars';
 import Build from './build.js';
 import Measure from 'react-measure'
-import FloatingActionButton from 'material-ui/FloatingActionButton';
 import IconButton from 'material-ui/IconButton';
 import { ToastContainer, toast } from 'react-toastify';
 import Dialog from 'material-ui/Dialog';
@@ -24,15 +19,16 @@ import {ItemView, ItemPicker, ChampionPicker, SummonerPicker} from './picker';
 import {MuiTheme} from './theme';
 import {LeftAd, RightAd} from './ad';
 
-const STAT_TYPE_DEFAULT = 0;
 const STAT_TYPE_PERCENT = 1;
 
 const STAT_DICT = {}
 
-
 var updateUrl = function() {
   window.history.pushState(null, "", "/?p=" + curBuild.toBase64());
 }
+
+var location = window.location;
+console.dir(`location.pathname: ${location.pathname}`);
 
 var startPos = window.location.href.indexOf('/?p=', 9);
 var buildBin = startPos >= 0 ? window.location.href.substring(startPos + 4) : "";
@@ -149,14 +145,14 @@ outer:
 
             let fromItemIds = itemInfo.from;
 
-            if (fromItemIds == null || fromItemIds.length == 0) {
+            if (fromItemIds == null || fromItemIds.length === 0) {
                 continue;
             }
 
             fromItemIds.forEach((itemId) => {
               var index = -1;
               for (let i = 0; i < finalItems.length; i++) {
-                if (itemId == finalItems[i].id) {
+                if (itemId === finalItems[i].id) {
                   index = i;
                   break;
                 }
@@ -335,7 +331,7 @@ class ItemBuild extends Component {
       cost += item.gold.total;
       var isStartingItem = false;
 
-      if (cost <= 500) {
+      if (cost <= 500 && startingItems.length < 6) {
         startingItems.push(
           <div
             draggable="true"
@@ -379,7 +375,7 @@ class ItemBuild extends Component {
       }
 
       tooltips.push(
-        <ReactTooltip id={item.name} effect='solid'>
+        <ReactTooltip id={item.name} effect='solid' key={index}>
           <div><span><b>{item.name}</b></span></div>
         </ReactTooltip>
         );
@@ -390,7 +386,7 @@ class ItemBuild extends Component {
       addItemElem = (
         <div className="add-item-outer">
           <RaisedButton
-            style={{height: itemSize, width: itemSize, 'min-width': 0}}
+            style={{height: itemSize, width: itemSize, minWidth: 0}}
             primary={true} 
             icon={<img src={require('./res/ic_add_white_24px.svg')}/>}
             onClick={() => this.props.onAddItemClicked()}/>
@@ -569,7 +565,7 @@ class SummonerBuild extends Component {
         <div className="selected-sum-container">
           <RaisedButton
             className={sumId >= 0 ? "selected-sum" : ""}
-            style={{width: 64, height: 64, 'min-width': 0}}
+            style={{width: 64, height: 64, minWidth: 0}}
             primary={true} 
             icon={imgElem}
             onClick={() => this.props.onEditItemClicked(index)} />
@@ -577,7 +573,7 @@ class SummonerBuild extends Component {
     });
 
     return (
-      <div class="sums-container">
+      <div className="sums-container">
         {sumElems[0]}
         <div style={{width: 16}}/>
         {sumElems[1]}
@@ -630,7 +626,7 @@ class RunesBuild extends Component {
       }
 
       return (
-        <div>
+        <div key={rowIndex + "-" + e}>
           <div
             data-tip
             data-for={"a" + rowIndex + "b" + e}
@@ -683,10 +679,11 @@ class App extends Component {
     super(props);
 
     this.state = {
-      panelToShow: 0,
+      panelToShow: this.getPanelBasedOnUrl(),
       build: curBuild,
       editingItem: -1,
       confirmDeleteDialogOpen: false,
+      confirmClearItemsDialogOpen: false,
       newBuild: newBuild
     };
 
@@ -715,6 +712,22 @@ class App extends Component {
         this.setState({build: curBuild});
         updateUrl();
       }})
+
+    window.onpopstate = () => {
+      this.setState({panelToShow: this.getPanelBasedOnUrl()});
+    }
+  }
+
+  getPanelBasedOnUrl() {
+    console.log('updateStateBasedOnUrl');
+    switch (location.pathname) {
+      case "/about":
+        return 100;
+      case "/how-this-works":
+        return 101;
+      default:
+        return 0;
+    }
   }
 
   renderThumb({ style, ...props }) {
@@ -727,6 +740,13 @@ class App extends Component {
           {...props}/>);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.panelToShow !== prevState.panelToShow 
+      && this.state.panelToShow >= 100) {
+      this.scrollView.scrollToTop();
+    }
+  }
+
   render() {
     var picker;
     var itemPicker;
@@ -736,36 +756,108 @@ class App extends Component {
     }
 
     var pickerClass = "";
+    var mainPicker;
 
-    if (this.state.panelToShow == 4) {
+    if (this.state.panelToShow === 4) {
       picker = 
         <ItemPicker
           onItemSelected={(item) => {curBuild.modifyItem(0, this.state.editingItem, item); this.setState({panelToShow: -1})}} 
           onCloseClicked={onCloseHandler}/>
-    } else if (this.state.panelToShow == 1) {
+    } else if (this.state.panelToShow === 1) {
       picker = 
         <ItemPicker
           onItemSelected={(e) => {curBuild.addItemToCurrentGroup(e);}}
           onCloseClicked={onCloseHandler}/>
-    } else if (this.state.panelToShow == 2) {
+    } else if (this.state.panelToShow === 2) {
       picker = 
         <ChampionPicker 
           onItemSelected={(e) => {curBuild.setChampionId(e.id); this.setState({panelToShow: -1})}}
           onCloseClicked={onCloseHandler}/>;
-    } else if (this.state.panelToShow == 3) {
+    } else if (this.state.panelToShow === 3) {
       picker = 
         <SummonerPicker 
           onItemSelected={(index, e) => {curBuild.setSummonerId(index, e.id); this.setState({panelToShow: -1})}}
           onCloseClicked={onCloseHandler}
           index={this.state.index}/>;
-    } else if (this.state.panelToShow == 5) {
+    } else if (this.state.panelToShow === 5) {
       picker = 
         <ItemBuildStats 
           onCloseClicked={onCloseHandler}/>;
-    } else if (this.state.panelToShow == 6) {
+    } else if (this.state.panelToShow === 6) {
       picker = 
         <Settings 
           onCloseClicked={onCloseHandler}/>;
+    } else if (this.state.panelToShow === 100) {
+      mainPicker =
+        <div className="picker-main about">
+          <div className="section-header">
+            <h2>About</h2>
+
+            <div className="spacer-1-flex"/>
+
+            <IconButton 
+              key="10" 
+              onClick={() => {
+                updateUrl();
+                this.setState({panelToShow: 0});
+                }}>
+              <img src={require('./res/ic_close_white_24px.svg')}/>
+            </IconButton>
+          </div>
+          <p style={{marginTop: 0}}>
+          Hassle free build creation and sharing for the popular 
+          <a href="https://en.wikipedia.org/wiki/Multiplayer_online_battle_arena"> MOBA</a> game, 
+          <a href="https://leagueoflegends.com"> League of Legends</a>.
+          </p>
+
+          <p>League of Legends Build Planner is aimed to deliver the world's best build creation/sharing experience. 
+          To achieve this, our Build Planner requires no sign up/sign ins, we offer a very simple interface to create 
+          builds and all links generated by this site are permanent links to your build and can be shared with anyone.
+          </p>
+
+          <h4>Disclaimer</h4>
+          <p>League of Legends Build Planner isn't endorsed by Riot Games and doesn't reflect the views or opinions 
+          of Riot Games or anyone officially involved in producing or managing League of Legends. League of Legends 
+          and Riot Games are trademarks or registered trademarks of Riot Games, Inc. League of Legends © Riot Games, 
+          Inc.</p>
+        </div>
+    } else if (this.state.panelToShow === 101) {
+      mainPicker =
+        <div className="picker-main about">
+          <div className="section-header">
+            <h2>How this works</h2>
+
+            <div className="spacer-1-flex"/>
+
+            <IconButton 
+              key="10" 
+              onClick={() => {
+                updateUrl();
+                this.setState({panelToShow: 0});
+                }}>
+              <img src={require('./res/ic_close_white_24px.svg')}/>
+            </IconButton>
+          </div>
+          <p style={{marginTop: 0}}>
+            Your build, built right into the url.
+          </p>
+          <p>
+            To offer players the very best experience when it comes to build sharing, we've made the sharing logic 
+            as simple and as fool proof as possible. To accomplish this, we encode your build into the link itself.
+          </p>
+          <p>
+            This means that every detail of your build is actually stored right into the url. The url 
+            itself stores the item build order, champion, summoners taken, rune information and more. The url is
+            also always kept up to date. (Try changing your build and pay attention to the address bar of your
+              browser). 
+          </p>
+          <p>
+            Urls generated by this app will thus be a permanent link to your build and will never expire as long 
+            as this site is kept alive. This also means that you can simply copy the url at any point to get a 
+            share-able link to your build. This also means that anyone can edit a build that is shared without
+            changing the original build or the original url.
+          </p>
+        </div>
     }
 
     if (picker == null) {
@@ -789,7 +881,7 @@ class App extends Component {
       championComponent = (
         <div className="edit-champion-container">
           <RaisedButton
-            style={{height: 100, width: 100}}
+            style={{height: 96, width: 96}}
             primary={true} 
             icon={<img src={require('./res/ic_edit_white_24px.svg')}/>}
             onClick={() => this.setState({panelToShow: 2})} />
@@ -871,129 +963,166 @@ class App extends Component {
         ];
     }
 
+    var onInternalLinkClick = (e) => {
+      console.dir(e.target.attributes.href);
+      window.history.pushState(null, "", e.target.attributes.href.value);
+      this.setState({panelToShow: this.getPanelBasedOnUrl()});
+      e.preventDefault(); 
+      return false;
+    };
+
+    //var shouldHideMain = this.state.panelToShow >= 100;
+
+
     return (
       <MuiThemeProvider muiTheme={MuiTheme}>
-        <Dialog
-          actions={clearBuildDialogActions}
-          modal={false}
-          open={this.state.confirmDeleteDialogOpen}
-          onRequestClose={() => this.setState({confirmDeleteDialogOpen: false})}>
-          Clear build?
-        </Dialog>
-        <Dialog
-          actions={clearItemBuildDialogActions}
-          modal={false}
-          open={this.state.confirmClearItemsDialogOpen}
-          onRequestClose={() => this.setState({confirmClearItemsDialogOpen: false})}>
-          Clear items?
-        </Dialog>
-        <FlipMove
-          duration={250} easing="ease-out"
-          className="App">
+        <div className="root">
+          <Dialog
+            actions={clearBuildDialogActions}
+            modal={false}
+            open={this.state.confirmDeleteDialogOpen}
+            onRequestClose={() => this.setState({confirmDeleteDialogOpen: false})}>
+            Clear build?
+          </Dialog>
+          <Dialog
+            actions={clearItemBuildDialogActions}
+            modal={false}
+            open={this.state.confirmClearItemsDialogOpen}
+            onRequestClose={() => this.setState({confirmClearItemsDialogOpen: false})}>
+            Clear items?
+          </Dialog>
+          <div
+            className="App">
 
-          <ToastContainer 
-            toastClassName="dark-toast"
-            progressClassName="transparent-progress" 
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            pauseOnHover/>
+            <ToastContainer 
+              toastClassName="dark-toast"
+              progressClassName="transparent-progress" 
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              pauseOnHover/>
 
-          <Scrollbars 
-            autoHide
-            autoHideTimeout={1000}
-            autoHideDuration={300}
-            className="main-scroll-view"
-            renderThumbHorizontal={this.renderThumb}
-            renderThumbVertical={this.renderThumb}
-            {...this.props}>
+            <Scrollbars 
+              autoHide
+              autoHideTimeout={1000}
+              autoHideDuration={300}
+              className="main-scroll-view"
+              renderThumbHorizontal={this.renderThumb}
+              renderThumbVertical={this.renderThumb}
+              ref={(input) => { this.scrollView = input; }}
+              {...this.props}>
 
-            <div className="main-outer">
+              <div className="main-outer">
 
-              <LeftAd />
+                <LeftAd />
 
-              <div className="main">
-                <div className="section-header">
-                  <h1 className="App-title">Build Planner</h1>
-
-                  <div className="spacer-1-flex"/>
-
-                  <IconButton onClick={
-                      () => {
-                        Util.copyTextToClipboard(window.location.href); 
-                        toast("Copied to clipboard!");
-                    }}>
-                    <img src={require('./res/ic_link_white_24px.svg')}/>
-                  </IconButton>
-
-                  <IconButton style={{display: 'none'}} onClick={() => this.setState({panelToShow: 6})}>
-                    <img src={require('./res/ic_settings_white_24px.svg')}/>
-                  </IconButton>
-
-                  <IconButton onClick={() => this.setState({confirmDeleteDialogOpen: true})}>
-                    <img src={require('./res/ic_clear_white_24px.svg')}/>
-                  </IconButton>
-                </div>
-
-                <div className="champion-sums-container">
-                  {championComponent}
-
-                  <div style={{width: 16}}/>
-
-                  <SummonerBuild sums={this.state.build.getSummonerIds()} onEditItemClicked={(index) => this.setState({panelToShow: 3, index: index})}/>
-                </div>
-                
-                <div style={{height: 8}}/>
-
-                <div className={"item-build-section-container" + (this.state.reorderItems ? " reorder" : "")}>
-                  <FlipMove
-                    duration={250} easing="ease-out"
-                    className="section-header">
-                    <h3>{this.state.reorderItems ? "DRAG & DROP TO REORDER" : "ITEMS"}</h3>
+                <div className="main">
+                  <div className="section-header">
+                    <h1 className="App-title">Build Planner</h1>
 
                     <div className="spacer-1-flex"/>
 
-                    {itemSectionButtons}
-                  </FlipMove>
+                    <IconButton onClick={
+                        () => {
+                          Util.copyTextToClipboard(window.location.href); 
+                          toast("Copied to clipboard!");
+                      }}>
+                      <img src={require('./res/ic_link_white_24px.svg')}/>
+                    </IconButton>
+
+                    <IconButton style={{display: 'none'}} onClick={() => this.setState({panelToShow: 6})}>
+                      <img src={require('./res/ic_settings_white_24px.svg')}/>
+                    </IconButton>
+
+                    <IconButton onClick={() => this.setState({confirmDeleteDialogOpen: true})}>
+                      <img src={require('./res/ic_clear_white_24px.svg')}/>
+                    </IconButton>
+                  </div>
+
+                  <div className="champion-sums-container">
+                    {championComponent}
+
+                    <div style={{width: 16}}/>
+
+                    <SummonerBuild sums={this.state.build.getSummonerIds()} onEditItemClicked={(index) => this.setState({panelToShow: 3, index: index})}/>
+                  </div>
+                  
+                  <div style={{height: 8}}/>
+
+                  <div className={"item-build-section-container" + (this.state.reorderItems ? " reorder" : "")}>
+                    <FlipMove
+                      duration={250} easing="ease-out"
+                      className="section-header">
+                      <h3>{this.state.reorderItems ? "DRAG & DROP TO REORDER" : "ITEMS"}</h3>
+
+                      <div className="spacer-1-flex"/>
+
+                      {itemSectionButtons}
+                    </FlipMove>
+                    <div className="content-container">
+                      <ItemBuild 
+                        reorderItems={this.state.reorderItems}
+                        onAddItemClicked={() => this.setState({panelToShow: 1})} 
+                        onEditItemClicked={(index) => this.setState({editingItem: index, panelToShow: 4})}
+                        items={this.state.build.getItemIds()}/>
+                    </div>
+                  </div>
+
+                  <div style={{height: 8}}/>
+
+                  <div className="section-header">
+                    <h3>SKILL ORDER</h3>
+                  </div>
                   <div className="content-container">
-                    <ItemBuild 
-                      reorderItems={this.state.reorderItems}
-                      onAddItemClicked={() => this.setState({panelToShow: 1})} 
-                      onEditItemClicked={(index) => this.setState({editingItem: index, panelToShow: 4})}
-                      items={this.state.build.getItemIds()}/>
+                    <SkillBuild skillSequence={this.state.build.getSkillSequence()}/>
+                  </div>
+
+                  <div style={{height: 8}}/>
+                  
+                  <div className="section-header">
+                    <h3>RUNES</h3>
+                  </div>
+                  <div className="content-container">
+                    <RunesBuild runes={this.state.build.getRunes()}/>
+                  </div>
+
+                  <div style={{height: 100}}/>
+
+                  {mainPicker}
+                </div>
+
+                <RightAd />
+                
+                <div className="footer-outer">
+                  <div className="footer">
+                    <span>
+                      <a
+                        href="/how-this-works" 
+                        className="footer-item"
+                        onClick={onInternalLinkClick}>
+                        How this works
+                      </a>
+                      |
+                      <a 
+                        href="/about" 
+                        className="footer-item" 
+                        onClick={onInternalLinkClick}>
+                        About
+                      </a>
+                    </span>
                   </div>
                 </div>
-
-                <div style={{height: 8}}/>
-
-                <div className="section-header">
-                  <h3>SKILL ORDER</h3>
-                </div>
-                <div className="content-container">
-                  <SkillBuild skillSequence={this.state.build.getSkillSequence()}/>
-                </div>
-
-                <div style={{height: 8}}/>
-                
-                <div className="section-header">
-                  <h3>RUNES</h3>
-                </div>
-                <div className="content-container">
-                  <RunesBuild runes={this.state.build.getRunes()}/>
-                </div>
               </div>
-
-              <RightAd />
+            </Scrollbars>
+            <div className={"side-panel" + pickerClass}>
+              {picker}
             </div>
-          </Scrollbars>
-          <div className={"side-panel" + pickerClass}>
-            {picker}
           </div>
-        </FlipMove>
 
-        {overlay}
+          {overlay}
+        </div>
       </MuiThemeProvider>
     );
   }
