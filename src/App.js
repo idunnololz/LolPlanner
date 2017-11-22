@@ -71,6 +71,7 @@ class ItemView2 extends Component {
           className="item-img-container"
           style={{width: innerW, height: innerH}}>
           <img 
+            alt={this.props.item.name}
             src={getItemImage(this.props.item)}
             style={{width: innerW + 4, height: innerH + 4}}/>
         </div>
@@ -78,13 +79,17 @@ class ItemView2 extends Component {
           className={"a1 " + (this.state.isHovered ? "a1-hover" : "")}
           onClick={() => {this.props.onEditItemClicked()}}
           style={{width: w, height: h/2}}>
-          <img src={require('./res/ic_edit_white_24px.svg')}/>
+          <img
+            alt="Edit" 
+            src={require('./res/ic_edit_white_24px.svg')}/>
         </div>
         <div 
           className={"a2 " + (this.state.isHovered ? "a2-hover" : "")}
           onClick={() => {this.props.onDeleteItemClicked()}}
           style={{width: w, height: h/2}}>
-          <img src={require('./res/ic_delete_white_24px.svg')}/>
+          <img 
+            alt="Delete"
+            src={require('./res/ic_delete_white_24px.svg')}/>
         </div>
       </div>
     );
@@ -125,58 +130,53 @@ class ItemBuildStats extends Component {
 
     var stats = {};
 
-    var trinket;
     var finalItems = [];
 
-outer:
     for (let i = 0; i < build.length; i++) {
       var item = build[i];
       if (item.tags.includes("Consumable")) continue;
       if (item.id === 2010) continue; // biscuit (for some reason it's not listed as a consumable)
+      if (item.tags.includes("Trinket")) continue;
 
-      if (item.tags.includes("Trinket")) {
-        trinket = item;
-      } else {
-        let toCheck = [item.id];
-        while (toCheck.length !== 0) {
-            let itemId = toCheck.shift();
-            let itemInfo = ItemsLibrary.getItem(itemId);
-            if (itemInfo == null) continue;
+      let toCheck = [item.id];
+      while (toCheck.length !== 0) {
+        let itemId = toCheck.shift();
+        let itemInfo = ItemsLibrary.getItem(itemId);
+        if (itemInfo == null) continue;
 
-            let fromItemIds = itemInfo.from;
+        let fromItemIds = itemInfo.from;
 
-            if (fromItemIds == null || fromItemIds.length === 0) {
-                continue;
+        if (fromItemIds == null || fromItemIds.length === 0) {
+            continue;
+        }
+
+        fromItemIds.forEach((itemId) => {
+          var index = -1;
+          for (let i = 0; i < finalItems.length; i++) {
+            if (itemId === finalItems[i].id) {
+              index = i;
+              break;
             }
+          }
 
-            fromItemIds.forEach((itemId) => {
-              var index = -1;
-              for (let i = 0; i < finalItems.length; i++) {
-                if (itemId === finalItems[i].id) {
-                  index = i;
-                  break;
-                }
-              }
+          if (index > -1) {
+            finalItems.splice(index, 1);
+          } else {
+            toCheck.push(itemId);
+          }
+        });
+      }
 
-              if (index > -1) {
-                finalItems.splice(index, 1);
-              } else {
-                toCheck.push(itemId);
-              }
-            });
-        }
+      // If we are going to add boots to the build, remove any boots already in the build
+      if (item.tags.includes("Boots")) {
+        finalItems = finalItems.filter((item) => {
+          return !item.tags.includes("Boots");
+        });
+      }
 
-        // If we are going to add boots to the build, remove any boots already in the build
-        if (item.tags.includes("Boots")) {
-          finalItems = finalItems.filter((item) => {
-            return !item.tags.includes("Boots");
-          });
-        }
-
-        finalItems.push(item);
-        if (finalItems.length > 6) {
-          finalItems.splice(0, 1);
-        }
+      finalItems.push(item);
+      if (finalItems.length > 6) {
+        finalItems.splice(0, 1);
       }
     }
 
@@ -203,7 +203,7 @@ outer:
             <div className="spacer-1-flex"/>
 
             <IconButton onClick={this.props.onCloseClicked}>
-              <img src={require('./res/ic_close_white_24px.svg')}/>
+              <img alt="Close" src={require('./res/ic_close_white_24px.svg')}/>
             </IconButton>
           </div>
         </header>
@@ -212,11 +212,11 @@ outer:
             {this.getComponentsForStats(stats)}
             <h3>Final items</h3>
             <div className="final-items-container">
-              {finalItems.map((e) => {
+              {finalItems.map((e, index) => {
                 return (
                   <ItemView 
                     item={e} 
-                    key={e.id}
+                    key={index}
                     onClick={() => {console.dir(e);}}/>);
               })}
             </div>
@@ -238,7 +238,7 @@ class Settings extends Component {
             <div className="spacer-1-flex"/>
 
             <IconButton onClick={this.props.onCloseClicked}>
-              <img src={require('./res/ic_close_white_24px.svg')}/>
+              <img alt="Close" src={require('./res/ic_close_white_24px.svg')}/>
             </IconButton>
           </div>
         </header>
@@ -321,7 +321,7 @@ class ItemBuild extends Component {
     var items = [];
     var tooltips = [];
 
-    const { width, height } = this.state.dimensions;
+    const { width } = this.state.dimensions;
 
     const minItemSize = 70;
     var itemSize = width / Math.floor(width / minItemSize);
@@ -329,7 +329,6 @@ class ItemBuild extends Component {
     this.props.items[0].forEach((itemModel, index) => {
       var item = ItemsLibrary.getItem(itemModel[0]);
       cost += item.gold.total;
-      var isStartingItem = false;
 
       if (cost <= 500 && startingItems.length < 6) {
         startingItems.push(
@@ -388,7 +387,7 @@ class ItemBuild extends Component {
           <RaisedButton
             style={{height: itemSize, width: itemSize, minWidth: 0}}
             primary={true} 
-            icon={<img src={require('./res/ic_add_white_24px.svg')}/>}
+            icon={<img alt="Add item" src={require('./res/ic_add_white_24px.svg')}/>}
             onClick={() => this.props.onAddItemClicked()}/>
         </div>)
     }
@@ -439,7 +438,6 @@ class SkillBuild extends Component {
         height: -1
       }
     };
-    this.props.skillSequence[0];
   }
 
   validateSkillSeq(skillSeq) {
@@ -477,7 +475,7 @@ class SkillBuild extends Component {
       var onClickListener = null;
       let coord = {x: (i % columns - 1), y: (Math.floor(i / columns) - 1)};
 
-      if (i % columns == 0 && i/columns > 0) {
+      if (i % columns === 0 && i/columns > 0) {
         // first column
         text = keys[i/columns - 1];
       } else if (i !==0 && i < columns) {
@@ -518,7 +516,7 @@ class SkillBuild extends Component {
 
   render() {
     var skillSeq = this.props.skillSequence;
-    const { width, height } = this.state.dimensions
+    const { width } = this.state.dimensions
 
     var error = this.validateSkillSeq(skillSeq);
 
@@ -559,6 +557,7 @@ class SummonerBuild extends Component {
     var sumElems = sumIds.map((sumId, index) => {
       var imgElem = 
         <img 
+          alt="Edit summoner"
           src={sumId >= 0 ? getSummonerImage(sumId) : require('./res/ic_edit_white_24px.svg')} 
           className={sumId >= 0 ? "sum-icon" : ""}/>;
       return ( 
@@ -640,8 +639,6 @@ class RunesBuild extends Component {
   }
 
   render() {
-    var runes = this.props.runes;
-
     return (
       <div className="runes-container">
         <div className="runes-container-row">
@@ -749,7 +746,6 @@ class App extends Component {
 
   render() {
     var picker;
-    var itemPicker;
 
     var onCloseHandler = () => {
       this.setState({panelToShow: -1});
@@ -801,7 +797,7 @@ class App extends Component {
                 updateUrl();
                 this.setState({panelToShow: 0});
                 }}>
-              <img src={require('./res/ic_close_white_24px.svg')}/>
+              <img alt="Close" src={require('./res/ic_close_white_24px.svg')}/>
             </IconButton>
           </div>
           <p style={{marginTop: 0}}>
@@ -835,7 +831,7 @@ class App extends Component {
                 updateUrl();
                 this.setState({panelToShow: 0});
                 }}>
-              <img src={require('./res/ic_close_white_24px.svg')}/>
+              <img alt="Close" src={require('./res/ic_close_white_24px.svg')}/>
             </IconButton>
           </div>
           <p style={{marginTop: 0}}>
@@ -874,7 +870,7 @@ class App extends Component {
             className="selected-champion"
             style={{height: '114px'}}
             primary={true} 
-            icon={<img src={getChampionImage(this.state.build.getChampionId())}/>}
+            icon={<img alt="" src={getChampionImage(this.state.build.getChampionId())}/>}
             onClick={() => this.setState({panelToShow: 2})} />
         </div>);
     } else {
@@ -883,7 +879,7 @@ class App extends Component {
           <RaisedButton
             style={{height: 96, width: 96}}
             primary={true} 
-            icon={<img src={require('./res/ic_edit_white_24px.svg')}/>}
+            icon={<img alt="Pick champion" src={require('./res/ic_edit_white_24px.svg')}/>}
             onClick={() => this.setState({panelToShow: 2})} />
         </div>);
     }
@@ -936,29 +932,29 @@ class App extends Component {
     if (this.state.reorderItems) {
       itemSectionButtons = [
           <IconButton key="10" onClick={() => {this.setState({reorderItems: false})}}>
-            <img src={require('./res/ic_close_white_24px.svg')}/>
+            <img alt="Close" src={require('./res/ic_close_white_24px.svg')}/>
           </IconButton>
         ];
     } else {
-      var disableReorder = buildItems == null || buildItems.length == 0 || buildItems[0] == null || buildItems[0].length <= 1;
-      var disableAnalyze = buildItems == null || buildItems.length == 0 || buildItems[0] == null || buildItems[0].length < 1;
+      var disableReorder = buildItems == null || buildItems.length === 0 || buildItems[0] == null || buildItems[0].length <= 1;
+      var disableAnalyze = buildItems == null || buildItems.length === 0 || buildItems[0] == null || buildItems[0].length < 1;
       itemSectionButtons = [
           <IconButton 
             key="0" 
             onClick={() => this.setState({reorderItems: true})}
             disabled={disableReorder}
             style={{opacity: disableReorder ? .33 : 1}}>
-            <img src={require('./res/ic_reorder_white_24px.svg')}/>
+            <img alt="Reorder" src={require('./res/ic_reorder_white_24px.svg')}/>
           </IconButton>,
           <IconButton 
             key="1" 
             onClick={() => this.setState({panelToShow: 5})}
             disabled={disableAnalyze}
             style={{opacity: disableAnalyze ? .33 : 1}}>
-            <img src={require('./res/ic_pie_chart_white_24px.svg')}/>
+            <img alt="Build stats" src={require('./res/ic_pie_chart_white_24px.svg')}/>
           </IconButton>,
           <IconButton key="2" onClick={() => this.setState({confirmClearItemsDialogOpen: true})}>
-            <img src={require('./res/ic_delete_white_24px.svg')}/>
+            <img alt="Clear" src={require('./res/ic_delete_white_24px.svg')}/>
           </IconButton>
         ];
     }
@@ -1029,15 +1025,15 @@ class App extends Component {
                           Util.copyTextToClipboard(window.location.href); 
                           toast("Copied to clipboard!");
                       }}>
-                      <img src={require('./res/ic_link_white_24px.svg')}/>
+                      <img alt="Copy link" src={require('./res/ic_link_white_24px.svg')}/>
                     </IconButton>
 
                     <IconButton style={{display: 'none'}} onClick={() => this.setState({panelToShow: 6})}>
-                      <img src={require('./res/ic_settings_white_24px.svg')}/>
+                      <img alt="Settings" src={require('./res/ic_settings_white_24px.svg')}/>
                     </IconButton>
 
                     <IconButton onClick={() => this.setState({confirmDeleteDialogOpen: true})}>
-                      <img src={require('./res/ic_clear_white_24px.svg')}/>
+                      <img alt="Clear" src={require('./res/ic_clear_white_24px.svg')}/>
                     </IconButton>
                   </div>
 

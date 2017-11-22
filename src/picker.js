@@ -59,7 +59,7 @@ export class ItemView extends Component {
       <RaisedButton 
         backgroundColor="#1A3C42"
         className="item"
-        style={{width: 68, height: 68, 'min-width': 0}}
+        style={{width: 68, height: 68, minWidth: 0}}
         icon={<img alt="Add item" src={getItemImage(this.props.item)}/>}
         onClick={this.props.onClick}/>
       );
