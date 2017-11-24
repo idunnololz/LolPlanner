@@ -571,10 +571,29 @@ div {
 }
 
 .item-picker {
+  header {
+    padding-bottom: 0px;
+  }
+
+  .items-container {
+    padding-top: 8px;
+  }
+
   .item img {
       padding-top: 0px;
       width:  58px; /* you can use % */
       height: auto;
+  }
+
+  h5 {
+    margin-top: 16px;
+    margin-bottom: 4px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    padding-left: 16px;
+    font-size: 1.2em;
+    font-weight: 300;
+    font-family: 'Roboto', sans-serif;
   }
 }
 

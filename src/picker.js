@@ -71,6 +71,7 @@ export class ItemPicker extends Component {
     super(props);
 
     this.state = {
+      filter: null,
       items: ItemsLibrary.getAllItems()
     };
     this.renderThumb = this.renderThumb.bind(this);
@@ -79,8 +80,10 @@ export class ItemPicker extends Component {
   filter(filter) {
     filter = filter.toLowerCase();
     console.log("Fitlering: " + filter);
-    this.setState({items: ItemsLibrary.getAllItems().filter((e) => {
-      return e.name.toLowerCase().indexOf(filter) !== -1 || e.colloq.indexOf(filter) !== -1;
+    this.setState({
+      filter: filter,
+      items: ItemsLibrary.getAllItems().filter((e) => {
+        return e.name.toLowerCase().indexOf(filter) !== -1 || e.colloq.indexOf(filter) !== -1;
     })});
   }
 
@@ -97,6 +100,41 @@ export class ItemPicker extends Component {
 
   render() {
     var items = this.state.items;
+
+    var recommendationViews;
+    var title;
+    var recommendations = this.props.recommendations;
+    if ((this.state.filter == null || this.state.filter.length === 0) && recommendations != null && recommendations.length > 0) {
+      recommendationViews = recommendations.map((e) => {
+        console.dir(e);
+        var itemIds = e.itemIds;
+        return (
+          <div>
+            <h5>{e.sectionTitle}</h5>
+            <div
+              className="items-container">
+              {itemIds.map((itemId) => {
+                var e = ItemsLibrary.getItem(itemId);
+                if (e == null) return null;
+                return (
+                  <div
+                    data-tip={e.name}>
+
+                    <ItemView 
+                      item={e} 
+                      key={e.id} 
+                      onClick={() => {this.props.onItemSelected(e)}}/>
+                  </div>);
+              })}
+            </div>
+          </div>
+        );
+      });
+      title = 
+        <div>
+            <h5>All items</h5>
+        </div>;
+    }
 
     return (
         <div className="vertical-content item-picker">
@@ -120,7 +158,6 @@ export class ItemPicker extends Component {
             />
           </header>
           <Scrollbars 
-            className="items-container"
             autoHide
             autoHideTimeout={1000}
             autoHideDuration={300}
@@ -128,18 +165,22 @@ export class ItemPicker extends Component {
             renderThumbVertical={this.renderThumb}
             {...this.props}>
 
-            <div className="items-container" duration={300} easing="ease-out">
-              {items.map((e) => {
-                return (
-                	<div
-                  	data-tip={e.name}>
+            <div>
+              {recommendationViews}
+              {title}
+              <div className="items-container" duration={300} easing="ease-out">
+                {items.map((e) => {
+                  return (
+                  	<div
+                    	data-tip={e.name}>
 
-	                  <ItemView 
-	                    item={e} 
-	                    key={e.id} 
-	                    onClick={() => {this.props.onItemSelected(e)}}/>
-                  </div>);
-              })}
+  	                  <ItemView 
+  	                    item={e} 
+  	                    key={e.id} 
+  	                    onClick={() => {this.props.onItemSelected(e)}}/>
+                    </div>);
+                })}
+              </div>
             </div>
           </Scrollbars>
 

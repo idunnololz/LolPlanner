@@ -646,11 +646,24 @@ div {
     transform: translate(0, 0);
     opacity: 1; }
 
+.item-picker header {
+  padding-bottom: 0px; }
+.item-picker .items-container {
+  padding-top: 8px; }
 .item-picker .item img {
   padding-top: 0px;
   width: 58px;
   /* you can use % */
   height: auto; }
+.item-picker h5 {
+  margin-top: 16px;
+  margin-bottom: 4px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 16px;
+  font-size: 1.2em;
+  font-weight: 300;
+  font-family: 'Roboto', sans-serif; }
 
 .item img {
   padding-top: 8px;

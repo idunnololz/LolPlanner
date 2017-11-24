@@ -18,6 +18,9 @@ import Util from './util';
 import {ItemView, ItemPicker, ChampionPicker, SummonerPicker} from './picker';
 import {MuiTheme} from './theme';
 import {LeftAd, RightAd} from './ad';
+import {Settings} from './settings';
+
+const S3_BASE_URL = "http://lol-catalyst-data.s3.amazonaws.com";
 
 const STAT_TYPE_PERCENT = 1;
 
@@ -29,6 +32,8 @@ var updateUrl = function() {
 
 var location = window.location;
 console.dir(`location.pathname: ${location.pathname}`);
+
+var pako = require('pako');
 
 var startPos = window.location.href.indexOf('/?p=', 9);
 var buildBin = startPos >= 0 ? window.location.href.substring(startPos + 4) : "";
@@ -220,32 +225,6 @@ class ItemBuildStats extends Component {
                     onClick={() => {console.dir(e);}}/>);
               })}
             </div>
-          </div>
-        </Scrollbars>
-      </div>
-      );
-  }
-}
-
-class Settings extends Component {
-  render() {
-    return ( 
-      <div className="vertical-content">
-        <header>
-          <div className="section-header">
-            <h2>Settings</h2>
-
-            <div className="spacer-1-flex"/>
-
-            <IconButton onClick={this.props.onCloseClicked}>
-              <img alt="Close" src={require('./res/ic_close_white_24px.svg')}/>
-            </IconButton>
-          </div>
-        </header>
-        <Scrollbars className="items-container">
-          <div className="settings-container" duration={300} easing="ease-out">
-            <a onClick={() => toast("Please contact the Make a Wish foundation.")}>Unleash level 9000 teemo</a>
-            <a>About</a>
           </div>
         </Scrollbars>
       </div>
@@ -675,13 +654,23 @@ class App extends Component {
   constructor(props) {
     super(props);
 
+    this.ROLES = {
+      TOP: 0,
+      JUNGLE: 1,
+      MID: 2,
+      SUPPORT: 4,
+      BOT: 3,
+      UNKNOWN: -1
+    }
+
     this.state = {
       panelToShow: this.getPanelBasedOnUrl(),
       build: curBuild,
       editingItem: -1,
       confirmDeleteDialogOpen: false,
       confirmClearItemsDialogOpen: false,
-      newBuild: newBuild
+      newBuild: newBuild,
+      itemRecommendations: null
     };
 
     this.itemPicker = null;
@@ -706,13 +695,65 @@ class App extends Component {
         updateUrl();
       },
       onChampionChanged: () => {
-        this.setState({build: curBuild});
+        this.setState({build: curBuild, itemRecommendations: null});
         updateUrl();
-      }})
+
+        this.downloadChampionData(curBuild.getChampionId());
+      }});
+
+    if (curBuild.getChampionId() > 0) {
+      this.downloadChampionData(curBuild.getChampionId());
+    }
 
     window.onpopstate = () => {
       this.setState({panelToShow: this.getPanelBasedOnUrl()});
     }
+  }
+
+  downloadChampionData(championId) {
+    var champion = ChampionsLibrary.getChampion(championId);
+    var championName = champion == null ? "" : champion.name + " ";
+    var ROLES = this.ROLES;
+    var that = this;
+    $.ajax({
+      url: S3_BASE_URL + `/data/other_builds/${championId}.json`,
+      type: "GET",
+      crossDomain: true,
+      success: function (response) {
+        var arr = new Buffer(response, 'base64');
+        var data = JSON.parse(pako.inflate(arr, { to: 'string' }));
+        console.dir(data);
+
+        var itemSuggestions = data.data.reduce((filtered, e) => {
+          if (e.s === 0) { // opgg
+            var roleStr;
+            if (e.role === ROLES.TOP) {
+              roleStr = "Top";
+            } else if (e.role === ROLES.JUNGLE) {
+              roleStr = "Jungle";
+            } else if (e.role === ROLES.MID) {
+              roleStr = "Mid";
+            } else if (e.role === ROLES.BOT) {
+              roleStr = "Bot";
+            } else if (e.role === ROLES.SUPPORT) {
+              roleStr = "Support";
+            }
+            filtered.push({
+              sectionTitle: `${championName}${roleStr}`,
+              itemIds: e.items.items.map((e) => {
+                return e.items[0]
+              })
+            });
+          }
+          return filtered;
+        }, []);
+
+        that.setState({itemRecommendations: itemSuggestions});
+      },
+      error: function (xhr, status) {
+        console.log("Error downloading build data for champion: " + championId);
+      }
+    });
   }
 
   getPanelBasedOnUrl() {
@@ -762,6 +803,7 @@ class App extends Component {
     } else if (this.state.panelToShow === 1) {
       picker = 
         <ItemPicker
+          recommendations={this.state.itemRecommendations}
           onItemSelected={(e) => {curBuild.addItemToCurrentGroup(e);}}
           onCloseClicked={onCloseHandler}/>
     } else if (this.state.panelToShow === 2) {
