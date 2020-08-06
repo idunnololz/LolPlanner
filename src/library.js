@@ -1,5 +1,5 @@
 
-import {getItemImageFor, getChampionImageFor, getSummonerImageFor} from './res_helper.js';
+import {getChampionImageFor, getSummonerImageFor} from './res_helper.js';
 
 class _ItemsLibrary {
 	constructor() {
@@ -107,21 +107,18 @@ class _PerksLibrary {
 }
 
 
-
-export const getItemImage = function(item) {
-  return getItemImageFor(parseInt(item.id, 10));
-};
 export const getChampionImage = function(championId) {
   if (championId["id"] != null) {
     championId = championId["id"];
   }
   return getChampionImageFor(parseInt(championId, 10));
 };
-export const getSummonerImage = function(sumId) {
+export const getSummonerImageClassName = function(sumId) {
   if (sumId["id"] != null) {
     sumId = sumId["id"];
   }
-  return getSummonerImageFor(parseInt(sumId, 10));
+  console.log("sum" + SummonersLibrary.getSummoner(sumId).key);
+  return "sum" + SummonersLibrary.getSummoner(sumId).key.toLowerCase();
 };
 
 

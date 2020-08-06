@@ -1,8 +1,8 @@
 {
-  "main.css": "static/css/main.bc473c98.css",
-  "main.css.map": "static/css/main.bc473c98.css.map",
-  "main.js": "static/js/main.dcbb99be.js",
-  "main.js.map": "static/js/main.dcbb99be.js.map",
+  "main.css": "static/css/main.fd08019e.css",
+  "main.css.map": "static/css/main.fd08019e.css.map",
+  "main.js": "static/js/main.e74fd812.js",
+  "main.js.map": "static/js/main.e74fd812.js.map",
   "static\\media\\Aatrox.png": "static/media/Aatrox.c90ab033.png",
   "static\\media\\Ahri.png": "static/media/Ahri.4979c179.png",
   "static\\media\\Akali.png": "static/media/Akali.1e6ac8d8.png",
@@ -149,5 +149,7 @@
   "static\\media\\ic_link_white_24px.svg": "static/media/ic_link_white_24px.05f36a52.svg",
   "static\\media\\ic_pie_chart_white_24px.svg": "static/media/ic_pie_chart_white_24px.bd5e124a.svg",
   "static\\media\\ic_reorder_white_24px.svg": "static/media/ic_reorder_white_24px.d36d483e.svg",
-  "static\\media\\ic_settings_white_24px.svg": "static/media/ic_settings_white_24px.82414380.svg"
+  "static\\media\\ic_settings_white_24px.svg": "static/media/ic_settings_white_24px.82414380.svg",
+  "static\\media\\images.png": "static/media/images.d7166b88.png",
+  "static\\media\\sums.png": "static/media/sums.bd249416.png"
 }

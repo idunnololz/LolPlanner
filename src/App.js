@@ -5,7 +5,7 @@ import $ from "jquery";
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import RaisedButton from 'material-ui/RaisedButton';
 import FlipMove from 'react-flip-move';
-import {getItemImage, getChampionImage, getSummonerImage, PerksLibrary, ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
+import {getChampionImage, getSummonerImageClassName, PerksLibrary, ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
 import { Scrollbars } from 'react-custom-scrollbars';
 import Build from './build.js';
 import Measure from 'react-measure'
@@ -75,9 +75,9 @@ class ItemView2 extends Component {
         <div 
           className="item-img-container"
           style={{width: innerW, height: innerH}}>
-          <img 
+          <div
             alt={this.props.item.name}
-            src={getItemImage(this.props.item)}
+            className={'item' + this.props.item.id}
             style={{width: innerW + 4, height: innerH + 4}}/>
         </div>
         <div 
@@ -534,11 +534,18 @@ class SummonerBuild extends Component {
     var sumIds = this.props.sums;
 
     var sumElems = sumIds.map((sumId, index) => {
-      var imgElem = 
-        <img 
-          alt="Edit summoner"
-          src={sumId >= 0 ? getSummonerImage(sumId) : require('./res/ic_edit_white_24px.svg')} 
-          className={sumId >= 0 ? "sum-icon" : ""}/>;
+      var imgElem;
+      if (sumId >= 0) {
+        imgElem = 
+          <div 
+            alt="Edit summoner" 
+            className={"sum-icon " + getSummonerImageClassName(sumId)}/>
+      } else {
+        imgElem = 
+          <img 
+            alt="Edit summoner"
+            src={require('./res/ic_edit_white_24px.svg')}/>
+      }
       return ( 
         <div className="selected-sum-container">
           <RaisedButton
@@ -712,7 +719,7 @@ class App extends Component {
 
   downloadChampionData(championId) {
     var champion = ChampionsLibrary.getChampion(championId);
-    var championName = champion == null ? "" : champion.name + " ";
+    var championName = champion == null ? "" : `- ${champion.name} `;
     var ROLES = this.ROLES;
     var that = this;
     $.ajax({
@@ -739,7 +746,7 @@ class App extends Component {
               roleStr = "Support";
             }
             filtered.push({
-              sectionTitle: `${championName}${roleStr}`,
+              sectionTitle: `Recommendations ${championName}${roleStr}`,
               itemIds: e.items.items.map((e) => {
                 return e.items[0]
               })
@@ -760,6 +767,7 @@ class App extends Component {
     console.log('updateStateBasedOnUrl');
     switch (location.pathname) {
       case "/about":
+      
         return 100;
       case "/how-this-works":
         return 101;
@@ -966,7 +974,6 @@ class App extends Component {
           </div>
         </div>
         );
-      overlay = null;
     }
 
     var buildItems = this.state.build.getItemIds();

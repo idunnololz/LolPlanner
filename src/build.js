@@ -12,6 +12,14 @@ var getNewItemBuild = function() {
 class Build {
   constructor() {
   	this.json = {
+      // itemIds is an array of array of 2 ints
+      // example: [[[3174,1],[3004,2],[3109,3],[1029,4],[1028,5],[1001,6]]]
+      // The outer array contains "build groups"
+      // Each "build group" is an array containing items
+      // Each item is an array of 2 ints, the first int is the item id
+      // the second int is a unique key (unique to the entire build)
+      // for now it's generated with a monotonically increasing counter
+      // The key is used for the UI end (for reordering, etc).
   		itemIds: getNewItemBuild(),
   		championId: -1,
   		sums: [-1, -1],

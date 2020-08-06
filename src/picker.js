@@ -8,7 +8,7 @@ import FlipMove from 'react-flip-move';
 import ReactTooltip from 'react-tooltip'
 
 import {MuiTheme} from './theme';
-import {getItemImage, getChampionImage, getSummonerImage, ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
+import {getItemImage, getChampionImage, getSummonerImageClassName, ItemsLibrary, ChampionsLibrary, SummonersLibrary} from './library.js';
 
 const textViewStyles = {
   underlineStyle: {
@@ -38,8 +38,8 @@ class SummonerView extends Component {
       <RaisedButton 
         backgroundColor="#1A3C42"
         className="item"
-        style={{width: '80px', height: '80px'}}
-        icon={<img alt="Edit" src={getSummonerImage(this.props.item)}/>}
+        style={{width: 80, height: 80, minWidth: 0}}
+        icon={<div alt="Edit" className={getSummonerImageClassName(this.props.item)}/>}
         onClick={this.props.onClick}/>
     );
   }
@@ -60,7 +60,7 @@ export class ItemView extends Component {
         backgroundColor="#1A3C42"
         className="item"
         style={{width: 68, height: 68, minWidth: 0}}
-        icon={<img alt="Add item" src={getItemImage(this.props.item)}/>}
+        icon={<div alt="Add item" className={'item' + this.props.item.id}/>}
         onClick={this.props.onClick}/>
       );
   }
